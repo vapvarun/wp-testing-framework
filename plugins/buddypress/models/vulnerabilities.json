@@ -1,0 +1,8 @@
+{
+    "known_issues": [],
+    "security_checks": [
+        "sql_injection",
+        "xss",
+        "csrf"
+    ]
+}

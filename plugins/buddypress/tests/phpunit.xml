@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+         bootstrap="../../phpunit/bootstrap.php"
+         colors="true"
+         verbose="true">
+    <testsuites>
+        <testsuite name="BuddyPress Unit Tests">
+            <directory>./unit</directory>
+        </testsuite>
+        <testsuite name="BuddyPress Integration Tests">
+            <directory>./integration</directory>
+        </testsuite>
+        <testsuite name="BuddyPress Security Tests">
+            <directory>./security</directory>
+        </testsuite>
+        <testsuite name="BuddyPress Functional Tests">
+            <directory>./functional</directory>
+        </testsuite>
+    </testsuites>
+    
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">../../../src</directory>
+        </include>
+    </coverage>
+    
+    <php>
+        <const name="WP_TESTS_DOMAIN" value="buddypress.test"/>
+        <const name="WP_TESTS_EMAIL" value="admin@buddypress.test"/>
+        <const name="WP_TESTS_TITLE" value="BuddyPress Test Suite"/>
+        <const name="WP_PHP_BINARY" value="php"/>
+    </php>
+</phpunit>

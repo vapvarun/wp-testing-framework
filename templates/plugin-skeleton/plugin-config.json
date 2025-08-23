@@ -1,0 +1,16 @@
+{
+    "name": "{plugin-name}",
+    "version": "1.0.0",
+    "components": [],
+    "test_suites": [
+        "unit",
+        "integration",
+        "functional"
+    ],
+    "scanners": [],
+    "models": [
+        "patterns",
+        "best-practices",
+        "vulnerabilities"
+    ]
+}

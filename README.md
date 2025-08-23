@@ -1,34 +1,43 @@
-# WordPress Universal Testing Framework
+# WP Testing Framework
 
-**🚀 Self-contained, portable testing framework for ANY WordPress plugin**
+**Universal WordPress Plugin Testing Framework - v2.0**
+
+A scalable, AI-optimized testing framework designed to comprehensively test any WordPress plugin. Built with clean architecture supporting 100+ plugins.
 
 ## ✨ Key Features
 
-- **Self-Contained**: All tools, vendor dependencies, and node_modules are inside `wp-testing-framework/`
-- **Portable**: Copy the entire folder to any WordPress installation and run `./setup.sh`
-- **Universal**: Works with ANY WordPress plugin (BuddyPress as comprehensive model)
-- **AI-Ready**: Generates reports optimized for Claude Code automation
+- **Universal Architecture**: Works with ANY WordPress plugin
+- **AI-Optimized**: Structured for automated analysis and decision-making  
+- **Comprehensive Testing**: Unit, integration, functional, security, and performance tests
+- **Code Analysis**: Deep scanning and pattern recognition
+- **Clean Separation**: Plugin-specific data isolated from framework core
+- **GitHub-Ready**: Only permanent, reusable data synced
+- **Self-Contained**: All dependencies included
+- **Scalable**: Designed for 100+ plugins
 
-## 📦 What's Included
+## 📊 Framework Structure
 
 ```
 wp-testing-framework/
-├── vendor/                 # PHP dependencies (PHPUnit, etc.)
-├── node_modules/          # Node dependencies (Playwright, etc.)
-├── bin/                   # Local wrapper scripts
-├── tools/                 # Testing tools & generators
-│   ├── ai/               # AI-powered analyzers
-│   ├── e2e/              # End-to-end test configs
-│   └── universal-workflow.mjs  # Main orchestrator
-├── tests/                 # Test suites
-│   ├── phpunit/          # PHP unit tests
-│   ├── generated/        # Auto-generated tests
-│   └── functionality/    # Functionality tests
-├── reports/              # Generated reports
-├── docs/                 # Documentation
-├── setup.sh             # One-command setup
-├── package.json         # Node dependencies
-└── composer.json        # PHP dependencies
+├── src/                    # Universal framework code
+│   ├── Framework/          # Base classes
+│   ├── Generators/         # Test generators
+│   ├── Analyzers/          # Code analyzers
+│   └── Utilities/          # Helper utilities
+├── plugins/                # Plugin-specific data (permanent)
+│   └── buddypress/         # Example implementation
+│       ├── data/           # Test fixtures
+│       ├── tests/          # Test suites (716+ methods)
+│       ├── scanners/       # Custom scanners
+│       ├── models/         # Learning models
+│       └── analysis/       # Static analysis
+├── workspace/              # Ephemeral data (not synced)
+│   ├── reports/            # Generated reports
+│   ├── screenshots/        # Test screenshots
+│   └── logs/               # Debug logs
+├── templates/              # Plugin skeleton templates
+├── vendor/                 # PHP dependencies
+└── node_modules/           # Node dependencies
 ```
 
 ## 🚀 Quick Start

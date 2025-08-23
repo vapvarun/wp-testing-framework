@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="../../../vendor/autoload.php">
+    <testsuites>
+        <testsuite name="{Plugin} Unit Tests">
+            <directory>./unit</directory>
+        </testsuite>
+        <testsuite name="{Plugin} Integration Tests">
+            <directory>./integration</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

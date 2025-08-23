@@ -1,0 +1,111 @@
+{
+  "report_structure": {
+    "base_path": "reports",
+    "plugin_folders": {
+      "buddypress": {
+        "name": "BuddyPress",
+        "slug": "buddypress",
+        "categories": [
+          "analysis",
+          "api",
+          "coverage",
+          "execution",
+          "integration",
+          "performance",
+          "security"
+        ]
+      },
+      "woocommerce": {
+        "name": "WooCommerce",
+        "slug": "woocommerce",
+        "categories": [
+          "analysis",
+          "api",
+          "coverage",
+          "execution",
+          "integration",
+          "performance",
+          "security",
+          "payment-gateways",
+          "shipping"
+        ]
+      },
+      "elementor": {
+        "name": "Elementor",
+        "slug": "elementor",
+        "categories": [
+          "analysis",
+          "widgets",
+          "templates",
+          "performance",
+          "compatibility"
+        ]
+      }
+    },
+    "report_types": {
+      "analysis": {
+        "description": "Code analysis and component scanning",
+        "formats": ["json", "md", "html"]
+      },
+      "api": {
+        "description": "REST API testing and documentation",
+        "formats": ["json", "md", "html"]
+      },
+      "coverage": {
+        "description": "Test coverage reports",
+        "formats": ["json", "md", "html", "xml"]
+      },
+      "execution": {
+        "description": "Test execution results",
+        "formats": ["json", "md", "xml", "junit"]
+      },
+      "integration": {
+        "description": "Integration test reports",
+        "formats": ["json", "md"]
+      },
+      "performance": {
+        "description": "Performance testing results",
+        "formats": ["json", "md", "html", "csv"]
+      },
+      "security": {
+        "description": "Security vulnerability scans",
+        "formats": ["json", "md", "html"]
+      }
+    },
+    "naming_convention": {
+      "pattern": "{plugin}-{type}-{timestamp}.{format}",
+      "timestamp_format": "Y-m-d_H-i-s",
+      "examples": [
+        "buddypress-analysis-2025-08-23_14-30-00.json",
+        "woocommerce-api-2025-08-23_15-00-00.md",
+        "elementor-performance-2025-08-23_16-00-00.html"
+      ]
+    },
+    "index_files": {
+      "plugin_index": "README.md",
+      "category_index": "index.json",
+      "summary": "summary.json"
+    }
+  },
+  "automation": {
+    "auto_organize": true,
+    "auto_index": true,
+    "auto_cleanup": {
+      "enabled": true,
+      "max_age_days": 90,
+      "max_reports_per_type": 50
+    },
+    "notifications": {
+      "on_new_report": true,
+      "on_cleanup": true,
+      "on_error": true
+    }
+  },
+  "ai_optimization": {
+    "structured_data": true,
+    "consistent_format": true,
+    "searchable_index": true,
+    "metadata_enrichment": true,
+    "cross_reference_enabled": true
+  }
+}

@@ -1,0 +1,23 @@
+{
+    "version": "2.0.0",
+    "structure": {
+        "plugins_directory": ".\/plugins",
+        "workspace_directory": ".\/workspace",
+        "templates_directory": ".\/templates",
+        "source_directory": ".\/src"
+    },
+    "github_sync": {
+        "include": [
+            "src",
+            "plugins",
+            "templates",
+            "docs",
+            "config"
+        ],
+        "exclude": [
+            "workspace",
+            "vendor",
+            "node_modules"
+        ]
+    }
+}
