@@ -54,9 +54,13 @@ reports/ai-analysis/*-execution-*.md
 config.local.json
 phpunit.local.xml
 
-# Generated test data (can be regenerated)
-tests/generated/*/plugin-analysis.json
-tests/generated/*/test-data.json
+# Keep test templates but ignore generated plugin-specific tests
+tests/templates/
+!tests/templates/**/*
+tests/generated/
+tests/buddypress/
+tests/woocommerce/
+tests/*/
 
 # Screenshots and videos from E2E tests
 tests/e2e/screenshots/

@@ -20,11 +20,30 @@ import { spawn, execSync } from 'node:child_process';
 
 // ---------- Configuration ----------
 const WORKFLOW_CONFIG = {
-  scanDir: 'wp-content/uploads/wp-scan',
+  scanDir: '../wp-content/uploads/wbcom-scan',
+  planDir: '../wp-content/uploads/wbcom-plan',
   testDir: 'tests/generated',
+  templatesDir: 'tests/templates',
   compatibilityDir: 'tests/compatibility',
   reportsDir: 'reports',
-  logFile: 'workflow.log'
+  logFile: 'workflow.log',
+  
+  // Dynamic paths based on plugin
+  getPluginScanDir(pluginSlug) {
+    return path.join(this.scanDir, pluginSlug);
+  },
+  
+  getPluginTestResultsDir(pluginSlug) {
+    return path.join(this.scanDir, pluginSlug, 'test-results');
+  },
+  
+  getLearningModelPath(pluginSlug) {
+    return path.join(this.planDir, 'models', 'test-patterns', `${pluginSlug}.json`);
+  },
+  
+  getGenericModelPath() {
+    return path.join(this.planDir, 'models', 'test-patterns', 'generic.json');
+  }
 };
 
 // ---------- CLI args ----------
