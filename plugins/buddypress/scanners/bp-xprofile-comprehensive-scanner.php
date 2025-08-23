@@ -499,7 +499,7 @@ class BP_XProfile_Comprehensive_Scanner {
     public function export_results($filename = null) {
         if (!$filename) {
             $upload_dir = wp_upload_dir();
-            $filename = $upload_dir['basedir'] . '/wbcom-scan/xprofile-comprehensive-scan-' . 
+            $filename = $upload_dir['basedir'] . '/wbcom-scan/buddypress/components/xprofile-comprehensive-scan-' . 
                        date('Y-m-d-His') . '.json';
         }
         

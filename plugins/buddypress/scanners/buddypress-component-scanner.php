@@ -651,7 +651,7 @@ class BuddyPressComponentScanner {
      */
     public function export_results($output_file = null) {
         if (!$output_file) {
-            $output_file = dirname(dirname(__DIR__)) . '/wp-content/uploads/wbcom-scan/buddypress-components-scan.json';
+            $output_file = dirname(dirname(__DIR__)) . '/wp-content/uploads/wbcom-scan/buddypress/components-scan.json';
         }
         
         // Ensure directory exists

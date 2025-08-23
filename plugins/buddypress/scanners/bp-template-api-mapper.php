@@ -682,7 +682,7 @@ class BP_Template_API_Mapper {
     public function export_results($filename = null) {
         if (!$filename) {
             $upload_dir = wp_upload_dir();
-            $filename = $upload_dir['basedir'] . '/wbcom-scan/buddypress-template-api-mapping-' . date('Y-m-d-His') . '.json';
+            $filename = $upload_dir['basedir'] . '/wbcom-scan/buddypress/templates/template-api-mapping-' . date('Y-m-d-His') . '.json';
         }
         
         // Ensure directory exists

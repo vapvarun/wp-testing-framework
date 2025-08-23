@@ -4,7 +4,7 @@
   "description": "Universal WordPress Testing Framework - BuddyPress Tests",
   "private": true,
   "scripts": {
-    "scan": "wp scan buddypress --path='../' --output=json > ../wp-content/uploads/wbcom-scan/buddypress-complete.json",
+    "scan": "wp scan buddypress --path='../' --output=json > ../wp-content/uploads/wbcom-scan/buddypress/buddypress-complete.json",
     "scan:bp": "wp scan buddypress --path='../'",
     "generate": "node tools/ai/generate-tests.mjs --type plugin --slug buddypress --name 'BuddyPress Tests'",
     "test:plan": "npm run scan && npm run generate",
@@ -58,10 +58,10 @@
     "universal:yoast": "node tools/universal-workflow.mjs --plugin wordpress-seo --action full --scan-dir ../wp-content/uploads/wbcom-scan",
     "universal:jetpack": "node tools/universal-workflow.mjs --plugin jetpack --action full --scan-dir ../wp-content/uploads/wbcom-scan",
     "universal:buddypress": "node tools/universal-workflow.mjs --plugin buddypress --action full --scan-dir ../wp-content/uploads/wbcom-scan",
-    "functionality:analyze": "node tools/ai/functionality-analyzer.mjs --scan ../wp-content/uploads/wbcom-scan/buddypress-complete.json",
-    "functionality:test": "node tools/ai/scenario-test-executor.mjs --scan ../wp-content/uploads/wbcom-scan/buddypress-complete.json",
-    "customer:analyze": "node tools/ai/customer-value-analyzer.mjs --scan ../wp-content/uploads/wbcom-scan/buddypress-complete.json",
-    "ai:report": "node tools/ai/ai-optimized-reporter.mjs --scan ../wp-content/uploads/wbcom-scan/buddypress-complete.json"
+    "functionality:analyze": "node tools/ai/functionality-analyzer.mjs --scan ../wp-content/uploads/wbcom-scan/buddypress/buddypress-complete.json",
+    "functionality:test": "node tools/ai/scenario-test-executor.mjs --scan ../wp-content/uploads/wbcom-scan/buddypress/buddypress-complete.json",
+    "customer:analyze": "node tools/ai/customer-value-analyzer.mjs --scan ../wp-content/uploads/wbcom-scan/buddypress/buddypress-complete.json",
+    "ai:report": "node tools/ai/ai-optimized-reporter.mjs --scan ../wp-content/uploads/wbcom-scan/buddypress/buddypress-complete.json"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",

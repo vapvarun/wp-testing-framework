@@ -947,7 +947,7 @@ class BP_Code_Flow_Scanner {
     public function export_results($filename = null) {
         if (!$filename) {
             $upload_dir = wp_upload_dir();
-            $filename = $upload_dir['basedir'] . '/wbcom-scan/buddypress-code-flow-' . date('Y-m-d-His') . '.json';
+            $filename = $upload_dir['basedir'] . '/wbcom-scan/buddypress/analysis/code-flow-' . date('Y-m-d-His') . '.json';
         }
         
         // Ensure directory exists

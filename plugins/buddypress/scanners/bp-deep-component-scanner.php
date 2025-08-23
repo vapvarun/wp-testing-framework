@@ -796,7 +796,7 @@ class BP_Deep_Component_Scanner {
     public function export_results($filename = null) {
         if (!$filename) {
             $upload_dir = wp_upload_dir();
-            $filename = $upload_dir['basedir'] . '/wbcom-scan/buddypress-deep-scan-' . date('Y-m-d-His') . '.json';
+            $filename = $upload_dir['basedir'] . '/wbcom-scan/buddypress/components/deep-scan-' . date('Y-m-d-His') . '.json';
         }
         
         // Ensure directory exists

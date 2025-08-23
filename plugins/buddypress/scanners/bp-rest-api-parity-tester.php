@@ -408,7 +408,7 @@ class BP_REST_API_Parity_Tester {
     public function export_results($filename = null) {
         if (!$filename) {
             $upload_dir = wp_upload_dir();
-            $filename = $upload_dir['basedir'] . '/wbcom-scan/buddypress-api-parity-' . date('Y-m-d-His') . '.json';
+            $filename = $upload_dir['basedir'] . '/wbcom-scan/buddypress/api/api-parity-' . date('Y-m-d-His') . '.json';
         }
         
         // Ensure directory exists
