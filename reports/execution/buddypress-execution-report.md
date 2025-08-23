@@ -1,6 +1,6 @@
 # buddypress - Functionality Test Execution Report
-**Executed:** 2025-08-23T11:50:08.583Z
-**Completed:** 2025-08-23T11:50:17.262Z
+**Executed:** 2025-08-23T12:49:07.314Z
+**Completed:** 2025-08-23T12:49:16.118Z
 **Duration:** 9s
 
 ## 📊 Test Summary
@@ -15,29 +15,36 @@
 
 ### ✅ Plugin exists and is discoverable
 **Status:** PASSED
-**Duration:** 1589ms
+**Duration:** 1646ms
 **Message:** Plugin found in WordPress installation
 **Evidence:** buddypress
 
 
 ### ✅ Plugin can be activated without errors
 **Status:** PASSED
-**Duration:** 537ms
+**Duration:** 550ms
 **Message:** Plugin activated successfully
 **Evidence:** Success: Plugin already activated.
 
 
-### ❌ Plugin admin pages are accessible
-**Status:** FAILED
-**Duration:** 530ms
-**Message:** No plugin admin pages detected
-**Evidence:** Found 0 admin menus
+### ❓ Plugin admin pages are accessible
+**Status:** ERROR
+**Duration:** 0ms
+**Message:** Cannot read properties of undefined (reading 'toLowerCase')
+**Evidence:** TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+    at file:///Users/varundubey/Local%20Sites/buddynext/app/public/wp-testing-framework/tools/ai/scenario-test-executor.mjs:118:24
+    at Array.filter (<anonymous>)
+    at Object.execute (file:///Users/varundubey/Local%20Sites/buddynext/app/public/wp-testing-framework/tools/ai/scenario-test-executor.mjs:117:37)
+    at async FunctionalityTestExecutor.executeTest (file:///Users/varundubey/Local%20Sites/buddynext/app/public/wp-testing-framework/tools/ai/scenario-test-executor.mjs:588:22)
+    at async FunctionalityTestExecutor.testPluginBasics (file:///Users/varundubey/Local%20Sites/buddynext/app/public/wp-testing-framework/tools/ai/scenario-test-executor.mjs:108:5)
+    at async FunctionalityTestExecutor.executeAllTests (file:///Users/varundubey/Local%20Sites/buddynext/app/public/wp-testing-framework/tools/ai/scenario-test-executor.mjs:61:5)
+    at async main (file:///Users/varundubey/Local%20Sites/buddynext/app/public/wp-testing-framework/tools/ai/scenario-test-executor.mjs:733:19)
 
 ## 📋 FEATURES Tests (3)
 
 ### ❌ Plugin shortcodes render correctly
 **Status:** FAILED
-**Duration:** 525ms
+**Duration:** 529ms
 **Message:** Could not retrieve shortcode list
 **Evidence:** Command failed: wp shortcode list --format=json
 Error: 'shortcode' is not a registered wp command. See 'wp help' for available commands.
@@ -45,7 +52,7 @@ Error: 'shortcode' is not a registered wp command. See 'wp help' for available c
 
 ### ❌ Plugin REST API endpoints respond correctly
 **Status:** FAILED
-**Duration:** 528ms
+**Duration:** 525ms
 **Message:** Could not retrieve REST API routes
 **Evidence:** Command failed: wp rest-api list --format=json
 Error: 'rest-api' is not a registered wp command. See 'wp help' for available commands.
@@ -53,7 +60,7 @@ Error: 'rest-api' is not a registered wp command. See 'wp help' for available co
 
 ### ❌ Plugin database operations work correctly
 **Status:** FAILED
-**Duration:** 240ms
+**Duration:** 239ms
 **Message:** Could not query database tables
 **Evidence:** Command failed: wp db query "SHOW TABLES" --format=json
 Error: Failed to get current SQL modes. Reason: ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2)
@@ -64,15 +71,15 @@ Error: Failed to get current SQL modes. Reason: ERROR 2002 (HY000): Can't connec
 
 ### ✅ Plugin content displays correctly on frontend
 **Status:** PASSED
-**Duration:** 1072ms
+**Duration:** 1069ms
 **Message:** Frontend display test completed
-**Evidence:** Test page created and accessible at http://localhost/?page_id=34
+**Evidence:** Test page created and accessible at http://localhost/?page_id=48
 
 ## 📋 BUDDYPRESS Tests (2)
 
 ### ❌ BuddyPress components are active and functional
 **Status:** FAILED
-**Duration:** 531ms
+**Duration:** 530ms
 **Message:** Could not check BuddyPress components
 **Evidence:** Command failed: wp bp component list --format=json
 Error: Parameter errors:
@@ -81,30 +88,29 @@ Error: Parameter errors:
 
 ### ✅ Users can register and create profiles
 **Status:** PASSED
-**Duration:** 1150ms
+**Duration:** 1145ms
 **Message:** User registration works correctly
-**Evidence:** User created with ID 54
+**Evidence:** User created with ID 55
 
 ## 📋 PERFORMANCE Tests (2)
 
 ### ✅ Plugin does not cause excessive memory usage
 **Status:** PASSED
-**Duration:** 514ms
+**Duration:** 515ms
 **Message:** Current memory usage is 25MB
 **Evidence:** Memory usage: 25MB
 
 ### ✅ Plugin loads without significant delay
 **Status:** PASSED
-**Duration:** 1461ms
-**Message:** Plugin command completed in 1461ms
-**Evidence:** Load time: 1461ms
+**Duration:** 1526ms
+**Message:** Plugin command completed in 1526ms
+**Evidence:** Load time: 1526ms
 
 ## 💡 Recommendations
 
 ### ⚠️ Action Required
 5 tests failed and require immediate attention:
 
-- **Plugin admin pages are accessible**: No plugin admin pages detected
 - **Plugin shortcodes render correctly**: Could not retrieve shortcode list
 - **Plugin REST API endpoints respond correctly**: Could not retrieve REST API routes
 - **Plugin database operations work correctly**: Could not query database tables
