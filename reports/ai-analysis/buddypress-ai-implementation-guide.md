@@ -24,7 +24,7 @@
         }
       ],
       "commands": [
-        "vendor/bin/phpunit tests/phpunit/Security/SecurityTestStandalone.php",
+        "./vendor/bin/phpunit tests/phpunit/Security/SecurityTestStandalone.php",
         "node tools/ai/scenario-test-executor.mjs --plugin buddypress"
       ]
     },
@@ -74,7 +74,7 @@
   "validation": {
     "test_commands": [
       "npm run functionality:test -- --plugin buddypress",
-      "vendor/bin/phpunit tests/generated/buddypress/",
+      "./vendor/bin/phpunit tests/generated/buddypress/",
       "node tools/ai/scenario-test-executor.mjs --plugin buddypress"
     ],
     "success_metrics": {
@@ -115,7 +115,7 @@ wp eval-file fixes/performance-optimization.php --path="buddypress"
 
 ### Run Validation Tests
 ```bash
-vendor/bin/phpunit tests/generated/buddypress/
+./vendor/bin/phpunit tests/generated/buddypress/
 ```
 **Purpose:** Validate all fixes and improvements
 **Expected Result:** All tests passing with >90% success rate

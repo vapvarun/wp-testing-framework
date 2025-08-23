@@ -2,7 +2,7 @@
 **PLUGIN:** buddypress
 **AI_READY:** true
 **AUTOMATION_ENABLED:** true
-**LAST_UPDATED:** 2025-08-23T10:40:43.182Z
+**LAST_UPDATED:** 2025-08-23T11:50:17.330Z
 
 ## 🤖 CLAUDE CODE AUTOMATION SUMMARY
 ```json
@@ -27,10 +27,10 @@
     "aiImplementationGuide"
   ],
   "key_metrics": {
-    "total_issues": 0,
+    "total_issues": 5,
     "auto_fixable": 0,
-    "manual_review": 0,
-    "success_probability": 95
+    "manual_review": 5,
+    "success_probability": 60
   }
 }
 ```

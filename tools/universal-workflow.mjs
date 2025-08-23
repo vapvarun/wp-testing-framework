@@ -128,7 +128,7 @@ async function runWorkflow() {
   
   // Ensure required directories exist
   Object.values(WORKFLOW_CONFIG).forEach(dir => {
-    if (dir.includes('/')) ensureDir(dir);
+    if (typeof dir === 'string' && dir.includes('/')) ensureDir(dir);
   });
   
   const results = {

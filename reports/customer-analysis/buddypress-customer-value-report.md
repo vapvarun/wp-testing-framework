@@ -1,27 +1,23 @@
 # Buddypress - Customer Value Analysis Report
 **Plugin:** buddypress vUnknown
-**Analysis Date:** 2025-08-23T10:40:42.718Z
+**Analysis Date:** 2025-08-23T11:50:17.300Z
 
 ## 🎯 Executive Summary
 This plugin provides **limited** value to customers with **low** revenue potential.
-The overall business impact score is **4.88/80**, indicating Very Low business value.
+The overall business impact score is **0/80**, indicating Very Low business value.
 
 ## 💰 Business Impact Analysis
-**Overall Score:** 4.88/80 (Very Low)
+**Overall Score:** 0/80 (Very Low)
 **Revenue Potential:** Low
 **Customer Impact:** Limited
 
 ### Business Impact Categories
-- **Customer Retention:** 2/10 (LOW)
-  - Evidence: community, social
-- **User Experience:** 1/10 (LOW)
-  - Evidence: ui
-- **Operational Efficiency:** 1/10 (LOW)
-  - Evidence: report
-- **Brand & Marketing:** 1/10 (LOW)
-  - Evidence: social
 - **Revenue Generation:** 0/10 (LOW)
 - **Customer Acquisition:** 0/10 (LOW)
+- **Customer Retention:** 0/10 (LOW)
+- **Operational Efficiency:** 0/10 (LOW)
+- **User Experience:** 0/10 (LOW)
+- **Brand & Marketing:** 0/10 (LOW)
 - **Security & Compliance:** 0/10 (LOW)
 - **Scalability:** 0/10 (LOW)
 
@@ -31,11 +27,7 @@ The overall business impact score is **4.88/80**, indicating Very Low business v
 **Customer Benefit:** Connect with other users and build relationships
 
 ## 👥 User Journey Analysis
-**Overall User Experience Score:** 4/50
-
-### ✅ Well-Supported Journey Stages
-- **Active Usage** (4/10)
-  - Supports: features, community
+**Overall User Experience Score:** 0/50
 
 ### ⚠️ Journey Gaps & Opportunities
 - **Awareness & Discovery**
@@ -47,6 +39,9 @@ The overall business impact score is **4.88/80**, indicating Very Low business v
 - **Purchase & Onboarding**
   - Missing: cart, checkout, payment, confirmation, account creation, welcome
   - Potential impact: complicated checkout, payment issues, no clear instructions, long process
+- **Active Usage**
+  - Missing: dashboard, features, support, tutorials, community
+  - Potential impact: confusing interface, missing features, poor performance, lack of help
 - **Growth & Advocacy**
   - Missing: upgrades, referrals, reviews, community participation, support
   - Potential impact: hitting limits, expensive upgrades, no referral incentives, poor support

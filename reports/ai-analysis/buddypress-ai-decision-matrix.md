@@ -27,10 +27,40 @@
       "description": "Ongoing maintenance cost"
     }
   },
-  "items": [],
+  "items": [
+    {
+      "id": "test_failure_plugin_admin_accessible",
+      "title": "Critical Test Failure: Plugin admin pages are accessible",
+      "category": "functionality",
+      "impact_score": 10,
+      "effort_score": 2,
+      "risk_score": 8,
+      "weighted_score": 8.8
+    }
+  ],
   "recommendations": {
-    "top_3_priorities": [],
-    "quick_wins": [],
+    "top_3_priorities": [
+      {
+        "id": "test_failure_plugin_admin_accessible",
+        "title": "Critical Test Failure: Plugin admin pages are accessible",
+        "category": "functionality",
+        "impact_score": 10,
+        "effort_score": 2,
+        "risk_score": 8,
+        "weighted_score": 8.8
+      }
+    ],
+    "quick_wins": [
+      {
+        "id": "test_failure_plugin_admin_accessible",
+        "title": "Critical Test Failure: Plugin admin pages are accessible",
+        "category": "functionality",
+        "impact_score": 10,
+        "effort_score": 2,
+        "risk_score": 8,
+        "weighted_score": 8.8
+      }
+    ],
     "long_term_strategic": []
   }
 }
