@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Test artifacts
+coverage/
+test-results/
+playwright-report/
+cypress/videos/
+cypress/screenshots/
+.phpunit.cache/
+.phpunit.result.cache
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# WordPress
+wp-config.php
+wp-config-local.php
+wp-content/uploads/
+wp-content/upgrade/
+wp-content/cache/
+wp-content/backups/
+
+# Build
+dist/
+build/
+*.zip
+*.tar.gz
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db

@@ -1,0 +1,42 @@
+{
+  "name": "wp-testing-framework",
+  "version": "1.0.0",
+  "description": "Universal WordPress Testing Framework - Test any plugin or theme",
+  "main": "install-wp-testing-framework.sh",
+  "scripts": {
+    "test": "echo \"Please run installer first: bash install-wp-testing-framework.sh\"",
+    "lint": "eslint tools/**/*.mjs",
+    "format": "prettier --write \"**/*.{js,mjs,ts,json,md}\""
+  },
+  "keywords": [
+    "wordpress",
+    "testing",
+    "phpunit",
+    "playwright",
+    "cypress",
+    "automation",
+    "e2e",
+    "unit-testing",
+    "integration-testing"
+  ],
+  "author": "WP Testing Framework Contributors",
+  "license": "GPL-2.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/wp-testing-framework.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/wp-testing-framework/issues"
+  },
+  "homepage": "https://github.com/yourusername/wp-testing-framework#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.46.0",
+    "cypress": "^13.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
