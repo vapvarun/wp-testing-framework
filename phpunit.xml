@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         bootstrap="tests/phpunit/bootstrap.php"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         requireCoverageMetadata="false"
+         beStrictAboutCoverageMetadata="false"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         colors="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true">
+    
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/phpunit/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/phpunit/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory>wp-content/themes/buddynext</directory>
+            <directory>wp-content/plugins/buddynext-*</directory>
+        </include>
+        <exclude>
+            <directory>wp-content/themes/buddynext/node_modules</directory>
+            <directory>wp-content/themes/buddynext/vendor</directory>
+            <directory>wp-content/themes/buddynext/tests</directory>
+        </exclude>
+    </source>
+
+    <php>
+        <!-- WordPress Test Environment -->
+        <env name="WP_TESTS_DOMAIN" value="buddynext.local"/>
+        <env name="WP_TESTS_EMAIL" value="admin@buddynext.local"/>
+        <env name="WP_TESTS_TITLE" value="BuddyNext Test Site"/>
+        <env name="WP_TESTS_SKIP_INSTALL" value="1"/>
+        
+        <!-- Database Configuration (using Local's MySQL) -->
+        <env name="WP_TESTS_DB_NAME" value="local"/>
+        <env name="WP_TESTS_DB_USER" value="root"/>
+        <env name="WP_TESTS_DB_PASS" value="root"/>
+        <env name="WP_TESTS_DB_HOST" value="localhost"/>
+        <env name="WP_TESTS_TABLE_PREFIX" value="wptests_"/>
+        
+        <!-- BuddyPress specific -->
+        <env name="BP_TESTS_DIR" value="wp-content/plugins/buddypress/tests/phpunit"/>
+    </php>
+</phpunit>
