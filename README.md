@@ -1,6 +1,6 @@
 # WordPress Universal Testing Framework
 
-[![CI](https://github.com/yourusername/wp-testing-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/wp-testing-framework/actions/workflows/ci.yml)
+[![CI](https://github.com/vapvarun/wp-testing-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/vapvarun/wp-testing-framework/actions/workflows/ci.yml)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D8.0-8892BF.svg)](https://php.net)
 [![Node Version](https://img.shields.io/badge/Node-%3E%3D18.0-339933.svg)](https://nodejs.org)
@@ -40,7 +40,7 @@ The framework automatically detects and generates tests for:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/wp-testing-framework.git
+git clone https://github.com/vapvarun/wp-testing-framework.git
 cd wp-testing-framework
 
 # Run the installer in your WordPress directory
@@ -296,9 +296,9 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 
 ## 🛟 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/wp-testing-framework/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/wp-testing-framework/discussions)
-- **Wiki**: [Project Wiki](https://github.com/yourusername/wp-testing-framework/wiki)
+- **Issues**: [GitHub Issues](https://github.com/vapvarun/wp-testing-framework/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/vapvarun/wp-testing-framework/discussions)
+- **Wiki**: [Project Wiki](https://github.com/vapvarun/wp-testing-framework/wiki)
 
 ## 📝 License
 
@@ -315,7 +315,7 @@ This project is licensed under the GPL v2 License - see the [LICENSE](LICENSE) f
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/wp-testing-framework&type=Date)](https://star-history.com/#yourusername/wp-testing-framework&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=vapvarun/wp-testing-framework&type=Date)](https://star-history.com/#vapvarun/wp-testing-framework&Date)
 
 ---
 
