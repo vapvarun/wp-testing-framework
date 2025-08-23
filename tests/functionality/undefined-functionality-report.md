@@ -1,0 +1,176 @@
+# undefined - Functionality Analysis Report
+**Plugin:** undefined vundefined
+**Analysis Date:** 2025-08-23T10:26:07.096Z
+
+## 🎯 Executive Summary
+This report analyzes what the plugin ACTUALLY DOES for end users and customers.
+Focus is on real-world functionality, user scenarios, and business value.
+
+## 🔍 Primary Functionality Identified
+### SOCIAL (Confidence: 82%)
+**Customer Value:** Community building and social interaction features
+
+**Key User Actions:**
+- Create user profiles
+- Join groups
+- Send messages
+- Post activities
+- Add friends
+- Receive notifications
+- Upload profile photos
+- Participate in discussions
+- Share content
+
+**Main Test Scenarios:**
+- User registration and profile creation
+- Group creation and management
+- Activity stream functionality
+- Private messaging system
+- Friend connection system
+- Notification delivery
+- Content sharing and interactions
+
+## 🌐 API Functionality
+- **/buddypress/v2** (GET)
+  - Users can retrieve data from /buddypress/v2
+- **/buddypress/v2/components** (GET, POST, PUT, PATCH)
+  - Users can retrieve data from /buddypress/v2/components
+  - Users can create new data via /buddypress/v2/components
+  - Users can update existing data via /buddypress/v2/components
+- **/buddypress/v2/members** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/members
+  - Users can create new data via /buddypress/v2/members
+- **/buddypress/v2/members/(?P<id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/members/(?P<id>[\d]+)
+  - Users can create new data via /buddypress/v2/members/(?P<id>[\d]+)
+  - Users can update existing data via /buddypress/v2/members/(?P<id>[\d]+)
+  - Users can delete data via /buddypress/v2/members/(?P<id>[\d]+)
+- **/buddypress/v2/members/me** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/members/me
+  - Users can create new data via /buddypress/v2/members/me
+  - Users can update existing data via /buddypress/v2/members/me
+  - Users can delete data via /buddypress/v2/members/me
+- **/buddypress/v2/members/(?P<user_id>[\d]+)/avatar** (GET, POST, DELETE)
+  - Users can retrieve data from /buddypress/v2/members/(?P<user_id>[\d]+)/avatar
+  - Users can create new data via /buddypress/v2/members/(?P<user_id>[\d]+)/avatar
+  - Users can delete data via /buddypress/v2/members/(?P<user_id>[\d]+)/avatar
+- **/buddypress/v2/members/(?P<user_id>[\d]+)/cover** (GET, POST, DELETE)
+  - Users can retrieve data from /buddypress/v2/members/(?P<user_id>[\d]+)/cover
+  - Users can create new data via /buddypress/v2/members/(?P<user_id>[\d]+)/cover
+  - Users can delete data via /buddypress/v2/members/(?P<user_id>[\d]+)/cover
+- **/buddypress/v2/xprofile/fields** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/xprofile/fields
+  - Users can create new data via /buddypress/v2/xprofile/fields
+- **/buddypress/v2/xprofile/fields/(?P<id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/xprofile/fields/(?P<id>[\d]+)
+  - Users can create new data via /buddypress/v2/xprofile/fields/(?P<id>[\d]+)
+  - Users can update existing data via /buddypress/v2/xprofile/fields/(?P<id>[\d]+)
+  - Users can delete data via /buddypress/v2/xprofile/fields/(?P<id>[\d]+)
+- **/buddypress/v2/xprofile/groups** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/xprofile/groups
+  - Users can create new data via /buddypress/v2/xprofile/groups
+- **/buddypress/v2/xprofile/groups/(?P<id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/xprofile/groups/(?P<id>[\d]+)
+  - Users can create new data via /buddypress/v2/xprofile/groups/(?P<id>[\d]+)
+  - Users can update existing data via /buddypress/v2/xprofile/groups/(?P<id>[\d]+)
+  - Users can delete data via /buddypress/v2/xprofile/groups/(?P<id>[\d]+)
+- **/buddypress/v2/xprofile/(?P<field_id>[\d]+)/data/(?P<user_id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/xprofile/(?P<field_id>[\d]+)/data/(?P<user_id>[\d]+)
+  - Users can create new data via /buddypress/v2/xprofile/(?P<field_id>[\d]+)/data/(?P<user_id>[\d]+)
+  - Users can update existing data via /buddypress/v2/xprofile/(?P<field_id>[\d]+)/data/(?P<user_id>[\d]+)
+  - Users can delete data via /buddypress/v2/xprofile/(?P<field_id>[\d]+)/data/(?P<user_id>[\d]+)
+- **/buddypress/v2/activity** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/activity
+  - Users can create new data via /buddypress/v2/activity
+- **/buddypress/v2/activity/(?P<id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/activity/(?P<id>[\d]+)
+  - Users can create new data via /buddypress/v2/activity/(?P<id>[\d]+)
+  - Users can update existing data via /buddypress/v2/activity/(?P<id>[\d]+)
+  - Users can delete data via /buddypress/v2/activity/(?P<id>[\d]+)
+- **/buddypress/v2/activity/(?P<id>[\d]+)/favorite** (POST, PUT, PATCH)
+  - Users can create new data via /buddypress/v2/activity/(?P<id>[\d]+)/favorite
+  - Users can update existing data via /buddypress/v2/activity/(?P<id>[\d]+)/favorite
+- **/buddypress/v2/friends** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/friends
+  - Users can create new data via /buddypress/v2/friends
+- **/buddypress/v2/friends/(?P<id>[\w-]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/friends/(?P<id>[\w-]+)
+  - Users can create new data via /buddypress/v2/friends/(?P<id>[\w-]+)
+  - Users can update existing data via /buddypress/v2/friends/(?P<id>[\w-]+)
+  - Users can delete data via /buddypress/v2/friends/(?P<id>[\w-]+)
+- **/buddypress/v2/groups** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/groups
+  - Users can create new data via /buddypress/v2/groups
+- **/buddypress/v2/groups/(?P<id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/groups/(?P<id>[\d]+)
+  - Users can create new data via /buddypress/v2/groups/(?P<id>[\d]+)
+  - Users can update existing data via /buddypress/v2/groups/(?P<id>[\d]+)
+  - Users can delete data via /buddypress/v2/groups/(?P<id>[\d]+)
+- **/buddypress/v2/groups/me** (GET)
+  - Users can retrieve data from /buddypress/v2/groups/me
+- **/buddypress/v2/groups/(?P<group_id>[\d]+)/avatar** (GET, POST, DELETE)
+  - Users can retrieve data from /buddypress/v2/groups/(?P<group_id>[\d]+)/avatar
+  - Users can create new data via /buddypress/v2/groups/(?P<group_id>[\d]+)/avatar
+  - Users can delete data via /buddypress/v2/groups/(?P<group_id>[\d]+)/avatar
+- **/buddypress/v2/groups/(?P<group_id>[\d]+)/members** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/groups/(?P<group_id>[\d]+)/members
+  - Users can create new data via /buddypress/v2/groups/(?P<group_id>[\d]+)/members
+- **/buddypress/v2/groups/(?P<group_id>[\d]+)/members/(?P<user_id>[\d]+)** (POST, PUT, PATCH, DELETE)
+  - Users can create new data via /buddypress/v2/groups/(?P<group_id>[\d]+)/members/(?P<user_id>[\d]+)
+  - Users can update existing data via /buddypress/v2/groups/(?P<group_id>[\d]+)/members/(?P<user_id>[\d]+)
+  - Users can delete data via /buddypress/v2/groups/(?P<group_id>[\d]+)/members/(?P<user_id>[\d]+)
+- **/buddypress/v2/groups/membership-requests** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/groups/membership-requests
+  - Users can create new data via /buddypress/v2/groups/membership-requests
+- **/buddypress/v2/groups/membership-requests/(?P<request_id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/groups/membership-requests/(?P<request_id>[\d]+)
+  - Users can create new data via /buddypress/v2/groups/membership-requests/(?P<request_id>[\d]+)
+  - Users can update existing data via /buddypress/v2/groups/membership-requests/(?P<request_id>[\d]+)
+  - Users can delete data via /buddypress/v2/groups/membership-requests/(?P<request_id>[\d]+)
+- **/buddypress/v2/groups/invites** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/groups/invites
+  - Users can create new data via /buddypress/v2/groups/invites
+- **/buddypress/v2/groups/invites/(?P<invite_id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/groups/invites/(?P<invite_id>[\d]+)
+  - Users can create new data via /buddypress/v2/groups/invites/(?P<invite_id>[\d]+)
+  - Users can update existing data via /buddypress/v2/groups/invites/(?P<invite_id>[\d]+)
+  - Users can delete data via /buddypress/v2/groups/invites/(?P<invite_id>[\d]+)
+- **/buddypress/v2/groups/(?P<group_id>[\d]+)/cover** (GET, POST, DELETE)
+  - Users can retrieve data from /buddypress/v2/groups/(?P<group_id>[\d]+)/cover
+  - Users can create new data via /buddypress/v2/groups/(?P<group_id>[\d]+)/cover
+  - Users can delete data via /buddypress/v2/groups/(?P<group_id>[\d]+)/cover
+- **/buddypress/v2/messages** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/messages
+  - Users can create new data via /buddypress/v2/messages
+- **/buddypress/v2/messages/(?P<id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/messages/(?P<id>[\d]+)
+  - Users can create new data via /buddypress/v2/messages/(?P<id>[\d]+)
+  - Users can update existing data via /buddypress/v2/messages/(?P<id>[\d]+)
+  - Users can delete data via /buddypress/v2/messages/(?P<id>[\d]+)
+- **/buddypress/v2/messages/starred/(?P<id>[\d]+)** (POST, PUT, PATCH)
+  - Users can create new data via /buddypress/v2/messages/starred/(?P<id>[\d]+)
+  - Users can update existing data via /buddypress/v2/messages/starred/(?P<id>[\d]+)
+- **/buddypress/v2/sitewide-notices** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/sitewide-notices
+  - Users can create new data via /buddypress/v2/sitewide-notices
+- **/buddypress/v2/sitewide-notices/(?P<id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/sitewide-notices/(?P<id>[\d]+)
+  - Users can create new data via /buddypress/v2/sitewide-notices/(?P<id>[\d]+)
+  - Users can update existing data via /buddypress/v2/sitewide-notices/(?P<id>[\d]+)
+  - Users can delete data via /buddypress/v2/sitewide-notices/(?P<id>[\d]+)
+- **/buddypress/v2/sitewide-notices/dismiss** (POST, PUT, PATCH)
+  - Users can create new data via /buddypress/v2/sitewide-notices/dismiss
+  - Users can update existing data via /buddypress/v2/sitewide-notices/dismiss
+- **/buddypress/v2/notifications** (GET, POST)
+  - Users can retrieve data from /buddypress/v2/notifications
+  - Users can create new data via /buddypress/v2/notifications
+- **/buddypress/v2/notifications/(?P<id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /buddypress/v2/notifications/(?P<id>[\d]+)
+  - Users can create new data via /buddypress/v2/notifications/(?P<id>[\d]+)
+  - Users can update existing data via /buddypress/v2/notifications/(?P<id>[\d]+)
+  - Users can delete data via /buddypress/v2/notifications/(?P<id>[\d]+)
+- **/wp/v2/buddypress/(?P<id>[\d]+)** (GET, POST, PUT, PATCH, DELETE)
+  - Users can retrieve data from /wp/v2/buddypress/(?P<id>[\d]+)
+  - Users can create new data via /wp/v2/buddypress/(?P<id>[\d]+)
+  - Users can update existing data via /wp/v2/buddypress/(?P<id>[\d]+)
+  - Users can delete data via /wp/v2/buddypress/(?P<id>[\d]+)

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/phpunit/bootstrap.php"
+         colors="true"
+         verbose="true">
+    
+    <!-- Component-based test suites -->
+    <testsuites>
+        <!-- Core Component -->
+        <testsuite name="core-component">
+            <directory>tests/phpunit/Components/Core</directory>
+        </testsuite>
+        
+        <!-- Members Component -->
+        <testsuite name="members-component">
+            <directory>tests/phpunit/Components/Members</directory>
+        </testsuite>
+        
+        <!-- Extended Profiles Component -->
+        <testsuite name="xprofile-component">
+            <directory>tests/phpunit/Components/XProfile</directory>
+        </testsuite>
+        
+        <!-- Activity Streams Component -->
+        <testsuite name="activity-component">
+            <directory>tests/phpunit/Components/Activity</directory>
+        </testsuite>
+        
+        <!-- Groups Component -->
+        <testsuite name="groups-component">
+            <directory>tests/phpunit/Components/Groups</directory>
+        </testsuite>
+        
+        <!-- Friends Component -->
+        <testsuite name="friends-component">
+            <directory>tests/phpunit/Components/Friends</directory>
+        </testsuite>
+        
+        <!-- Messages Component -->
+        <testsuite name="messages-component">
+            <directory>tests/phpunit/Components/Messages</directory>
+        </testsuite>
+        
+        <!-- Notifications Component -->
+        <testsuite name="notifications-component">
+            <directory>tests/phpunit/Components/Notifications</directory>
+        </testsuite>
+        
+        <!-- Settings Component -->
+        <testsuite name="settings-component">
+            <directory>tests/phpunit/Components/Settings</directory>
+        </testsuite>
+        
+        <!-- Site Tracking (Blogs) Component -->
+        <testsuite name="blogs-component">
+            <directory>tests/phpunit/Components/Blogs</directory>
+        </testsuite>
+        
+        <!-- Component Groups -->
+        <testsuite name="critical-components">
+            <directory>tests/phpunit/Components/Core</directory>
+            <directory>tests/phpunit/Components/Members</directory>
+        </testsuite>
+        
+        <testsuite name="social-components">
+            <directory>tests/phpunit/Components/Friends</directory>
+            <directory>tests/phpunit/Components/Messages</directory>
+            <directory>tests/phpunit/Components/Activity</directory>
+        </testsuite>
+        
+        <testsuite name="management-components">
+            <directory>tests/phpunit/Components/Groups</directory>
+            <directory>tests/phpunit/Components/Notifications</directory>
+            <directory>tests/phpunit/Components/Settings</directory>
+        </testsuite>
+        
+        <!-- All Components -->
+        <testsuite name="all-components">
+            <directory>tests/phpunit/Components</directory>
+        </testsuite>
+    </testsuites>
+    
+    <!-- Code Coverage -->
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">wp-content/plugins/buddypress</directory>
+        </include>
+        <exclude>
+            <directory>wp-content/plugins/buddypress/tests</directory>
+            <directory>wp-content/plugins/buddypress/vendor</directory>
+        </exclude>
+    </coverage>
+    
+    <!-- Logging -->
+    <logging>
+        <testdoxHtml outputFile="test-results/components-testdox.html"/>
+        <junit outputFile="test-results/components-junit.xml"/>
+    </logging>
+</phpunit>
