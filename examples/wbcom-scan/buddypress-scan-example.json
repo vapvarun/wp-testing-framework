@@ -1,0 +1,604 @@
+Warning: foreach() argument must be of type array|object, bool given in /Users/varundubey/Local Sites/buddynext/app/public/wp-content/plugins/buddypress/src/bp-core/bp-core-template.php on line 3493
+{
+    "plugin_info": {
+        "version": "15.0.0-alpha",
+        "db_version": "13906",
+        "active": true
+    },
+    "components": [
+        {
+            "id": "core",
+            "title": "BuddyPress Core",
+            "description": "It&#8216;s what makes <del>time travel<\/del> BuddyPress possible!",
+            "active": true
+        },
+        {
+            "id": "members",
+            "title": "Community Members",
+            "description": "Everything in a BuddyPress community revolves around its members.",
+            "active": true
+        },
+        {
+            "id": "xprofile",
+            "title": "Extended Profiles",
+            "description": "Customize your community with fully editable profile fields that allow your users to describe themselves.",
+            "active": true
+        },
+        {
+            "id": "settings",
+            "title": "Account Settings",
+            "description": "Allow your users to modify their account and notification settings directly from within their profiles.",
+            "active": true
+        },
+        {
+            "id": "friends",
+            "title": "Friend Connections",
+            "description": "Let your users make connections so they can track the activity of others and focus on the people they care about the most.",
+            "active": true
+        },
+        {
+            "id": "messages",
+            "title": "Private Messaging",
+            "description": "Allow your users to talk to each other directly and in private. Not just limited to one-on-one discussions, messages can be sent between any number of members.",
+            "active": true
+        },
+        {
+            "id": "activity",
+            "title": "Activity Streams",
+            "description": "Global, personal, and group activity streams with threaded commenting, direct posting, favoriting, and @mentions, all with full RSS feed and email notification support.",
+            "active": true
+        },
+        {
+            "id": "notifications",
+            "title": "Notifications",
+            "description": "Notify members of relevant activity with a toolbar bubble and\/or via email, and allow them to customize their notification settings.",
+            "active": true
+        },
+        {
+            "id": "groups",
+            "title": "User Groups",
+            "description": "Groups allow your users to organize themselves into specific public, private or hidden sections with separate activity streams and member listings.",
+            "active": true
+        },
+        {
+            "id": "blogs",
+            "title": "Site Tracking",
+            "description": "Record activity for new posts and comments from your site.",
+            "active": true
+        }
+    ],
+    "pages": [
+        {
+            "component": "activity",
+            "title": "Activity",
+            "slug": "activity",
+            "id": 4,
+            "url": "http:\/\/buddynext.local\/activity\/"
+        },
+        {
+            "component": "members",
+            "title": "Members",
+            "slug": "members",
+            "id": 5,
+            "url": "http:\/\/buddynext.local\/members\/"
+        },
+        {
+            "component": "groups",
+            "title": "Groups",
+            "slug": "groups",
+            "id": 28,
+            "url": "http:\/\/buddynext.local\/groups\/"
+        }
+    ],
+    "navigation": [],
+    "activity_types": [
+        {
+            "type": "new_member",
+            "label": "New member registered"
+        },
+        {
+            "type": "new_avatar",
+            "label": "Member changed profile picture"
+        },
+        {
+            "type": "updated_profile",
+            "label": "Updated Profile"
+        },
+        {
+            "type": "activity_update",
+            "label": "Posted a status update in a Group"
+        },
+        {
+            "type": "activity_comment",
+            "label": "Replied to a status update"
+        },
+        {
+            "type": "friendship_accepted",
+            "label": "Friendships accepted"
+        },
+        {
+            "type": "friendship_created",
+            "label": "New friendships"
+        },
+        {
+            "type": "created_group",
+            "label": "Created a group"
+        },
+        {
+            "type": "joined_group",
+            "label": "Joined a group"
+        },
+        {
+            "type": "group_details_updated",
+            "label": "Group details edited"
+        },
+        {
+            "type": "new_blog_post",
+            "label": "New post published"
+        },
+        {
+            "type": "new_blog_comment",
+            "label": "New post comment posted"
+        }
+    ],
+    "xprofile": [
+        {
+            "id": 1,
+            "name": "Base",
+            "description": "",
+            "fields": [
+                {
+                    "id": 1,
+                    "name": "Name",
+                    "type": "textbox",
+                    "required": true
+                }
+            ]
+        }
+    ],
+    "groups": [],
+    "rest_routes": [
+        {
+            "route": "\/buddypress\/v2",
+            "methods": [
+                "GET"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/components",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/members",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/members\/(?P<id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/members\/me",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/members\/(?P<user_id>[\\d]+)\/avatar",
+            "methods": [
+                "GET",
+                "POST",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/members\/(?P<user_id>[\\d]+)\/cover",
+            "methods": [
+                "GET",
+                "POST",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/xprofile\/fields",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/xprofile\/fields\/(?P<id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/xprofile\/groups",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/xprofile\/groups\/(?P<id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/xprofile\/(?P<field_id>[\\d]+)\/data\/(?P<user_id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/activity",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/activity\/(?P<id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/activity\/(?P<id>[\\d]+)\/favorite",
+            "methods": [
+                "POST",
+                "PUT",
+                "PATCH"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/friends",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/friends\/(?P<id>[\\w-]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/(?P<id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/me",
+            "methods": [
+                "GET"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/(?P<group_id>[\\d]+)\/avatar",
+            "methods": [
+                "GET",
+                "POST",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/(?P<group_id>[\\d]+)\/members",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/(?P<group_id>[\\d]+)\/members\/(?P<user_id>[\\d]+)",
+            "methods": [
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/membership-requests",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/membership-requests\/(?P<request_id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/invites",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/invites\/(?P<invite_id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/groups\/(?P<group_id>[\\d]+)\/cover",
+            "methods": [
+                "GET",
+                "POST",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/messages",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/messages\/(?P<id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/messages\/starred\/(?P<id>[\\d]+)",
+            "methods": [
+                "POST",
+                "PUT",
+                "PATCH"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/sitewide-notices",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/sitewide-notices\/(?P<id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/sitewide-notices\/dismiss",
+            "methods": [
+                "POST",
+                "PUT",
+                "PATCH"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/notifications",
+            "methods": [
+                "GET",
+                "POST"
+            ]
+        },
+        {
+            "route": "\/buddypress\/v2\/notifications\/(?P<id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        },
+        {
+            "route": "\/wp\/v2\/buddypress\/(?P<id>[\\d]+)",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ]
+        }
+    ],
+    "emails": [
+        {
+            "situation": "core-user-activation",
+            "description": ""
+        },
+        {
+            "situation": "activity-comment",
+            "description": ""
+        },
+        {
+            "situation": "activity-comment-author",
+            "description": ""
+        },
+        {
+            "situation": "activity-at-message",
+            "description": ""
+        },
+        {
+            "situation": "groups-at-message",
+            "description": ""
+        },
+        {
+            "situation": "core-user-registration",
+            "description": ""
+        },
+        {
+            "situation": "core-user-registration-with-blog",
+            "description": ""
+        },
+        {
+            "situation": "friends-request",
+            "description": ""
+        },
+        {
+            "situation": "friends-request-accepted",
+            "description": ""
+        },
+        {
+            "situation": "groups-details-updated",
+            "description": ""
+        },
+        {
+            "situation": "groups-invitation",
+            "description": ""
+        },
+        {
+            "situation": "groups-member-promoted",
+            "description": ""
+        },
+        {
+            "situation": "groups-membership-request",
+            "description": ""
+        },
+        {
+            "situation": "messages-unread",
+            "description": ""
+        },
+        {
+            "situation": "settings-verify-email-change",
+            "description": ""
+        },
+        {
+            "situation": "groups-membership-request-accepted",
+            "description": ""
+        },
+        {
+            "situation": "groups-membership-request-rejected",
+            "description": ""
+        },
+        {
+            "situation": "groups-membership-request-accepted-by-admin",
+            "description": ""
+        },
+        {
+            "situation": "groups-membership-request-rejected-by-admin",
+            "description": ""
+        },
+        {
+            "situation": "bp-members-invitation",
+            "description": ""
+        },
+        {
+            "situation": "members-membership-request",
+            "description": ""
+        },
+        {
+            "situation": "members-membership-request-rejected",
+            "description": ""
+        }
+    ],
+    "settings": [
+        {
+            "option": "bp-active-components",
+            "value": "{\"xprofile\":\"1\",\"settings\":\"1\",\"friends\":\"1\",\"messages\":\"1\",\"activity\":\"1\",\"notifications\":\"1\",\"groups\":\"1\",\"blogs\":\"1\",\"members\":\"1\"}"
+        },
+        {
+            "option": "bp-pages",
+            "value": "{\"activity\":4,\"members\":5,\"groups\":28}"
+        },
+        {
+            "option": "bp-disable-account-deletion",
+            "value": ""
+        },
+        {
+            "option": "bp-disable-avatar-uploads",
+            "value": ""
+        },
+        {
+            "option": "bp-disable-cover-image-uploads",
+            "value": ""
+        },
+        {
+            "option": "bp-disable-group-avatar-uploads",
+            "value": ""
+        },
+        {
+            "option": "bp-disable-group-cover-image-uploads",
+            "value": ""
+        },
+        {
+            "option": "bp-disable-profile-sync",
+            "value": ""
+        },
+        {
+            "option": "bp-enable-members-invitations",
+            "value": ""
+        },
+        {
+            "option": "bp-enable-membership-requests",
+            "value": ""
+        }
+    ]
+}

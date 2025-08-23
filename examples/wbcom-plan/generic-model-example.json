@@ -1,0 +1,266 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2024-08-23",
+  "description": "Generic test patterns applicable to all WordPress plugins",
+  "patterns": {
+    "activation": {
+      "tests": [
+        "Plugin activates without errors",
+        "Database tables created if needed",
+        "Default options set",
+        "No PHP errors or warnings",
+        "Compatibility check performed"
+      ],
+      "success_indicators": [
+        "is_plugin_active() returns true",
+        "No entries in error_log",
+        "Database schema matches expected"
+      ]
+    },
+    "deactivation": {
+      "tests": [
+        "Plugin deactivates cleanly",
+        "Scheduled tasks cleared",
+        "Temporary data cleaned",
+        "No orphaned database entries"
+      ],
+      "success_indicators": [
+        "is_plugin_active() returns false",
+        "wp_cron tasks removed",
+        "Transients cleared"
+      ]
+    },
+    "user_permissions": {
+      "tests": [
+        "Admin capabilities work",
+        "Editor capabilities limited appropriately",
+        "Subscriber access restricted",
+        "Custom roles function correctly"
+      ],
+      "common_issues": [
+        "Capability not checked",
+        "Nonce verification missing",
+        "Direct file access allowed"
+      ]
+    },
+    "data_operations": {
+      "create": {
+        "tests": [
+          "Data validates before save",
+          "Data saves to correct location",
+          "Sanitization applied",
+          "Success/error feedback provided"
+        ]
+      },
+      "read": {
+        "tests": [
+          "Data retrieves correctly",
+          "Pagination works",
+          "Filtering works",
+          "Sorting works"
+        ]
+      },
+      "update": {
+        "tests": [
+          "Only authorized users can update",
+          "Validation on update",
+          "Version/revision tracking",
+          "Cache cleared after update"
+        ]
+      },
+      "delete": {
+        "tests": [
+          "Soft delete where appropriate",
+          "Cascade deletes handled",
+          "Confirmation required",
+          "Restoration possible"
+        ]
+      }
+    },
+    "api_endpoints": {
+      "rest_api": {
+        "tests": [
+          "Endpoints registered correctly",
+          "Authentication required where needed",
+          "Rate limiting in place",
+          "Proper HTTP status codes",
+          "JSON schema validation"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"]
+      },
+      "ajax": {
+        "tests": [
+          "Ajax handlers registered",
+          "Nonce verification",
+          "Proper response format",
+          "Error handling"
+        ]
+      }
+    },
+    "security": {
+      "sql_injection": {
+        "test_vectors": [
+          "'; DROP TABLE users; --",
+          "1' OR '1'='1",
+          "admin'--",
+          "' UNION SELECT * FROM users--"
+        ],
+        "prevention": "Use $wpdb->prepare() for all queries"
+      },
+      "xss": {
+        "test_vectors": [
+          "<script>alert('XSS')</script>",
+          "<img src=x onerror=alert('XSS')>",
+          "javascript:alert('XSS')",
+          "<svg onload=alert('XSS')>"
+        ],
+        "prevention": "Escape all output with esc_html(), esc_attr(), etc."
+      },
+      "csrf": {
+        "tests": [
+          "Nonces used for state-changing operations",
+          "Nonces verified before processing",
+          "Referrer checking where appropriate"
+        ],
+        "prevention": "wp_nonce_field() and check_admin_referer()"
+      },
+      "file_upload": {
+        "tests": [
+          "File type validation",
+          "File size limits",
+          "Filename sanitization",
+          "Upload directory permissions"
+        ],
+        "prevention": "wp_handle_upload() with proper mime types"
+      }
+    },
+    "performance": {
+      "database": {
+        "tests": [
+          "Queries use indexes",
+          "No N+1 query problems",
+          "Batch operations where possible",
+          "Query caching implemented"
+        ],
+        "metrics": {
+          "query_time": "< 100ms",
+          "queries_per_page": "< 50"
+        }
+      },
+      "caching": {
+        "tests": [
+          "Object cache utilized",
+          "Transients used appropriately",
+          "Cache invalidation works",
+          "CDN compatible"
+        ]
+      },
+      "assets": {
+        "tests": [
+          "Scripts minified",
+          "Styles minified",
+          "Images optimized",
+          "Lazy loading implemented"
+        ]
+      }
+    },
+    "compatibility": {
+      "wordpress_versions": {
+        "tests": [
+          "Works with latest WP",
+          "Works with minimum supported WP",
+          "Deprecation notices handled"
+        ],
+        "min_version": "5.6",
+        "tested_up_to": "6.6"
+      },
+      "php_versions": {
+        "tests": [
+          "Works with PHP 7.4",
+          "Works with PHP 8.0",
+          "Works with PHP 8.1",
+          "Works with PHP 8.2"
+        ],
+        "min_version": "7.4"
+      },
+      "browsers": {
+        "tests": [
+          "Chrome (latest)",
+          "Firefox (latest)",
+          "Safari (latest)",
+          "Edge (latest)"
+        ]
+      }
+    },
+    "internationalization": {
+      "tests": [
+        "All strings translatable",
+        "Text domain loaded",
+        "RTL support",
+        "Date/time formatting",
+        "Number formatting"
+      ],
+      "functions": [
+        "__(",
+        "_e(",
+        "_n(",
+        "_x(",
+        "esc_html__(",
+        "esc_attr__("
+      ]
+    },
+    "accessibility": {
+      "tests": [
+        "ARIA labels present",
+        "Keyboard navigation works",
+        "Screen reader compatible",
+        "Color contrast sufficient",
+        "Focus indicators visible"
+      ],
+      "standards": ["WCAG 2.1 AA"]
+    }
+  },
+  "test_data_generators": {
+    "users": {
+      "count": [10, 100, 1000],
+      "roles": ["administrator", "editor", "author", "contributor", "subscriber"],
+      "meta_fields": ["first_name", "last_name", "description", "user_url"]
+    },
+    "posts": {
+      "count": [50, 500, 5000],
+      "types": ["post", "page"],
+      "statuses": ["publish", "draft", "private", "pending"],
+      "with_featured_image": 0.7,
+      "with_comments": 0.5
+    },
+    "comments": {
+      "per_post": [0, 10],
+      "nested_probability": 0.3,
+      "spam_probability": 0.05
+    },
+    "taxonomies": {
+      "categories": [5, 20],
+      "tags": [20, 100],
+      "hierarchical_depth": 3
+    }
+  },
+  "reporting": {
+    "formats": ["JSON", "HTML", "Markdown", "CSV"],
+    "metrics": [
+      "Test coverage percentage",
+      "Pass/fail ratio",
+      "Performance benchmarks",
+      "Security scan results",
+      "Compatibility matrix"
+    ],
+    "ai_integration": {
+      "format": "JSON with Markdown sections",
+      "structure": {
+        "summary": "Executive summary",
+        "detailed_results": "Test-by-test breakdown",
+        "recommendations": "Actionable fixes",
+        "priority_matrix": "Issue prioritization"
+      }
+    }
+  }
+}
