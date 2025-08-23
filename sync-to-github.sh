@@ -1,12 +1,9 @@
 #!/bin/bash
 #
-# Sync Script: BuddyNext Development -> GitHub Repository
+# Sync Script: Development -> GitHub Repository
 # 
-# This script syncs testing framework changes from the local development
-# environment (buddynext.local) to the GitHub repository.
-#
-# Development: /Users/varundubey/Local Sites/buddynext/app/public/wp-testing-framework/
-# GitHub Repo: /Users/varundubey/wp-testing-framework/
+# This script syncs testing framework changes to GitHub repository.
+# Set GITHUB_PATH environment variable or edit default below.
 #
 
 # Colors for output
@@ -15,11 +12,13 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Paths
-DEV_PATH="/Users/varundubey/Local Sites/buddynext/app/public/wp-testing-framework"
-GITHUB_PATH="/Users/varundubey/wp-testing-framework"
+# Get current directory (should be wp-testing-framework)
+DEV_PATH="$(pwd)"
 
-echo -e "${GREEN}🔄 Syncing BuddyNext development to GitHub repository${NC}"
+# GitHub path - use environment variable or default
+GITHUB_PATH="${WP_TESTING_GITHUB_PATH:-$HOME/wp-testing-framework}"
+
+echo -e "${GREEN}🔄 Syncing WP Testing Framework to GitHub repository${NC}"
 echo -e "${YELLOW}From: $DEV_PATH${NC}"
 echo -e "${YELLOW}To:   $GITHUB_PATH${NC}"
 echo ""
@@ -57,13 +56,17 @@ sync_file() {
     fi
 }
 
-# Sync directories
-sync_dir "tools"
-sync_dir "tests"
+# Sync framework directories (permanent data only)
+sync_dir "src"
+sync_dir "plugins"
+sync_dir "templates"
 sync_dir "docs"
-sync_dir "plugins/wbcom-universal-scanner"
-sync_dir "reports"
 sync_dir "bin"
+sync_dir "tools"
+
+# Don't sync workspace or ephemeral data
+# sync_dir "workspace"  # Skip - ephemeral data
+# sync_dir "reports"    # Skip - generated reports
 
 # Note: We don't sync vendor/ and node_modules/ as they should be installed locally
 
@@ -75,16 +78,13 @@ sync_file "phpunit-unit.xml"
 sync_file "phpunit-components.xml"
 sync_file "phpunit-modern.xml"
 
-# Sync documentation
+# Sync root documentation
 sync_file "README.md"
 sync_file "CONTRIBUTING.md"
-sync_file "DEVELOPMENT-WORKFLOW.md"
-sync_file "DOCUMENTATION-VALIDATION.md"
 
-# Sync scripts
+# Sync essential scripts only
 sync_file "setup.sh"
 sync_file "sync-to-github.sh"
-sync_file "cleanup-wordpress-root.sh"
 
 # Sync git files
 sync_file ".gitignore"
@@ -96,5 +96,8 @@ echo -e "${YELLOW}Next steps:${NC}"
 echo "1. cd $GITHUB_PATH"
 echo "2. git status"
 echo "3. git add ."
-echo "4. git commit -m 'Update from buddynext development'"
+echo "4. git commit -m 'Update from development'"
 echo "5. git push"
+echo ""
+echo -e "${YELLOW}To set custom GitHub path:${NC}"
+echo "export WP_TESTING_GITHUB_PATH=/path/to/github/repo"
