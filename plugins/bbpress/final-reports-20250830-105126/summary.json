@@ -3,14 +3,12 @@
     "version": "
 Notice: Function _load_textdomain_just_in_time was called <strong>incorrectly</strong>. Translation loading for the <code>bbpress</code> domain was triggered too early. This is usually an indicator for some code in the plugin or theme running too early. Translations should be loaded at the <code>init</code> action or later. Please see <a href="https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/">Debugging in WordPress</a> for more information. (This message was added in version 6.7.0.) in /Users/varundubey/Local Sites/buddynext/app/public/wp-includes/functions.php on line 6121
 2.6.14",
-    "generated": "2025-08-30T05:37:19Z",
-    "analysis": {
-        "files": {
-            "php": 191,
-            "javascript": 16,
-            "css": 16
-        },
+    "scan_date": "2025-08-30T05:21:29Z",
+    "metrics": {
         "code": {
+            "php_files": 191,
+            "js_files": 16,
+            "css_files": 16,
             "functions": 2431,
             "classes": 63,
             "hooks": 2059,
@@ -31,9 +29,9 @@ Notice: Function _load_textdomain_just_in_time was called <strong>incorrectly</s
             "file_upload_handlers": 0
         },
         "testing": {
-            "coverage_percent": ,
-            "test_suites_run": ,
-            "tests_passed": 
+            "coverage_percent": 0,
+            "test_suites_run": 4,
+            "tests_passed": 2
         },
         "performance": {
             "total_size": "3.5M",

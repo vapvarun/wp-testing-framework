@@ -1,0 +1,4 @@
+# Shortcodes in bbpress
+includes/common/shortcodes.php:		$this->add_shortcodes();
+includes/common/shortcodes.php:	private function add_shortcodes() {
+includes/common/shortcodes.php:			add_shortcode( $code, $function );

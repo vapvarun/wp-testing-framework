@@ -1,0 +1,8 @@
+# AJAX Handlers in bbpress
+includes/admin/actions.php:add_action( 'wp_ajax_bbp_converter_process', 'bbp_setup_converter', 2 );
+includes/admin/classes/class-bbp-converter.php:		add_action( 'wp_ajax_bbp_converter_process', array( $this, 'process_callback' ) );
+includes/admin/classes/class-bbp-admin.php:		add_action( 'wp_ajax_bbp_suggest_topic', array( $this, 'suggest_topic' ) );
+includes/admin/classes/class-bbp-admin.php:		add_action( 'wp_ajax_bbp_suggest_user',  array( $this, 'suggest_user'  ) );
+includes/admin/metaboxes.php:		<input name="parent_id" id="bbp_topic_id" type="text" value="<?php echo esc_attr( $reply_topic_id ); ?>" data-ajax-url="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'bbp_suggest_topic' ), admin_url( 'admin-ajax.php', 'relative' ) ), 'bbp_suggest_topic_nonce' ) ); ?>" />
+includes/admin/metaboxes.php:			<input type="text" id="bbp_author_id" name="post_author_override" value="<?php echo esc_attr( bbp_get_global_post_field( 'post_author' ) ); ?>" data-ajax-url="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'bbp_suggest_user' ), admin_url( 'admin-ajax.php', 'relative' ) ), 'bbp_suggest_user_nonce' ) ); ?>" />
+includes/common/ajax.php: * This is largely taken from admin-ajax.php, but adapted specifically for
