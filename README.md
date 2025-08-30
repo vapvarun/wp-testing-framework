@@ -1,112 +1,86 @@
 # WP Testing Framework
 
-**Universal WordPress Plugin Testing Framework - Optimized for Local WP**
+**Universal WordPress Plugin Testing - Optimized for Local WP**
 
-🚀 Test ANY WordPress plugin with a single command. Zero configuration needed for Local WP users!
+🚀 Test ANY WordPress plugin in 30 seconds with zero configuration!
 
-## ✨ Quick Start (30 seconds!)
-
-### For Local WP Users (Recommended)
+## ✨ Quick Start (Local WP)
 
 ```bash
-# 1. Navigate to your Local WP site
+# 1. Open Local WP and navigate to your site
 cd ~/Local\ Sites/your-site/app/public
 
-# 2. Clone and setup (one line!)
+# 2. Clone and setup (one command!)
 git clone https://github.com/vapvarun/wp-testing-framework.git && cd wp-testing-framework && ./local-wp-setup.sh
 
-# 3. Test any plugin (auto-creates everything!)
-./test-plugin.sh bbpress
-```
-
-That's it! No configuration, no manual folder creation, everything automatic! 🎉
-
-### For Other Environments
-
-```bash
-git clone https://github.com/vapvarun/wp-testing-framework.git
-cd wp-testing-framework
-./fresh-install.sh
-```
-
-## 🎯 Testing Any Plugin
-
-```bash
-# Method 1: Direct command (recommended)
+# 3. Test any plugin
 ./test-plugin.sh plugin-name
-
-# Method 2: NPM
-npm run test:plugin plugin-name
-
-# Method 3: Quick test
-npm run quick:test plugin-name
 ```
 
-**Examples:**
+**That's it!** No configuration needed. Everything is automatic! 🎉
+
+## 🎯 How It Works
+
+The framework automatically:
+1. **Detects Local WP** environment
+2. **Configures database** (uses root/root)
+3. **Sets up site URL** (.local domain)
+4. **Creates folders** when testing
+5. **Generates reports** instantly
+
+## 📦 Testing Any Plugin
+
 ```bash
+# Just one command - folders created automatically!
 ./test-plugin.sh woocommerce
 ./test-plugin.sh elementor
-./test-plugin.sh contact-form-7
-./test-plugin.sh wordpress-seo
+./test-plugin.sh bbpress
 ./test-plugin.sh buddypress
+./test-plugin.sh contact-form-7
 ```
 
-## 🔥 Key Features
+### Test Types
+```bash
+./test-plugin.sh plugin-name         # Full test suite
+./test-plugin.sh plugin-name quick   # Quick test only
+./test-plugin.sh plugin-name security # Security focus
+./test-plugin.sh plugin-name performance # Performance focus
+```
 
-- **🚀 Zero Configuration** - Works instantly with Local WP
-- **📁 Auto-Creates Folders** - No manual setup needed
-- **🔍 Auto-Detects Environment** - Finds your site settings automatically
-- **📊 Comprehensive Testing** - Unit, integration, security, performance
-- **📈 Beautiful Reports** - HTML reports with all results
-- **🎨 Works with ANY Plugin** - Universal compatibility
+## 📊 View Results
 
-## 📋 What Gets Tested
+After testing, find your results:
+```bash
+# Open HTML report
+open workspace/reports/plugin-name/report-*.html
 
-When you run `./test-plugin.sh plugin-name`, the framework:
+# Check logs
+cat workspace/logs/plugin-name/*.log
+```
 
-1. **Creates folder structure** (automatic)
-2. **Scans plugin code**
-3. **Runs security tests**
-4. **Checks performance**
-5. **Tests functionality**
-6. **Generates HTML report**
+## 🔥 Why Local WP?
 
-## 📊 Test Reports
+Local WP is the preferred environment because:
+- ✅ **Zero configuration** - Everything pre-installed
+- ✅ **WP-CLI included** - No manual installation
+- ✅ **Database ready** - root/root access configured
+- ✅ **Site URL works** - .local domain auto-configured
+- ✅ **One-click sites** - Create test sites instantly
 
-Find your results in:
-- **Reports:** `workspace/reports/{plugin}/`
-- **Logs:** `workspace/logs/{plugin}/`
-- **Coverage:** `workspace/coverage/{plugin}/`
-
-## 🛠️ Requirements
-
-### Local WP (Recommended)
-- That's it! Local WP includes everything needed
-
-### Other Environments
-- PHP 8.0+
-- Node.js 16+
-- Composer
-- WordPress 5.9+
-- MySQL/MariaDB
-
-## 📚 Popular Plugin Tests
+## 📚 Popular Plugin Examples
 
 ### E-Commerce
 ```bash
 ./test-plugin.sh woocommerce
 ./test-plugin.sh easy-digital-downloads
 ./test-plugin.sh woocommerce-subscriptions
-./test-plugin.sh woocommerce-memberships
 ```
 
 ### Page Builders
 ```bash
 ./test-plugin.sh elementor
-./test-plugin.sh elementor-pro
 ./test-plugin.sh beaver-builder
 ./test-plugin.sh divi-builder
-./test-plugin.sh oxygen
 ./test-plugin.sh bricks
 ```
 
@@ -116,24 +90,21 @@ Find your results in:
 ./test-plugin.sh wpforms-lite
 ./test-plugin.sh ninja-forms
 ./test-plugin.sh gravity-forms
-./test-plugin.sh formidable
 ```
 
 ### SEO
 ```bash
 ./test-plugin.sh wordpress-seo      # Yoast
 ./test-plugin.sh all-in-one-seo-pack
-./test-plugin.sh seo-framework
 ./test-plugin.sh rank-math
 ```
 
-### Community/Social
+### Community
 ```bash
 ./test-plugin.sh buddypress
 ./test-plugin.sh bbpress
 ./test-plugin.sh buddyboss-platform
 ./test-plugin.sh peepso
-./test-plugin.sh ultimate-member
 ```
 
 ### Security
@@ -141,53 +112,48 @@ Find your results in:
 ./test-plugin.sh wordfence
 ./test-plugin.sh sucuri-scanner
 ./test-plugin.sh ithemes-security
-./test-plugin.sh all-in-one-wp-security
 ```
 
 ### Performance
 ```bash
 ./test-plugin.sh w3-total-cache
 ./test-plugin.sh wp-rocket
-./test-plugin.sh wp-super-cache
 ./test-plugin.sh litespeed-cache
 ./test-plugin.sh autoptimize
 ```
 
-## 🎨 Test Types
+## 📁 What Gets Created Automatically
 
-```bash
-# Full test suite (default)
-./test-plugin.sh plugin-name
-
-# Quick test only
-./test-plugin.sh plugin-name quick
-
-# Security focused
-./test-plugin.sh plugin-name security
-
-# Performance focused
-./test-plugin.sh plugin-name performance
-```
-
-## 📁 Project Structure
+When you run `./test-plugin.sh plugin-name`:
 
 ```
-wp-testing-framework/
-├── test-plugin.sh          # Main test runner (auto-creates folders!)
-├── local-wp-setup.sh       # Local WP auto-setup
-├── plugins/                # Auto-created plugin test folders
-│   └── {plugin-name}/      # Created when you test
-│       ├── tests/          # Test files
-│       ├── analysis/       # Code analysis
-│       └── data/           # Test data
-├── workspace/              # Test outputs
-│   ├── reports/           # HTML reports
-│   ├── logs/              # Test logs
-│   └── coverage/          # Code coverage
-└── src/                   # Framework core
+plugins/plugin-name/
+├── test-config.json      # Auto-generated config
+├── tests/                # Test suites
+│   ├── unit/
+│   ├── integration/
+│   ├── security/
+│   └── performance/
+├── analysis/             # Code analysis
+└── data/                 # Test fixtures
+
+workspace/
+├── reports/plugin-name/  # HTML reports
+├── logs/plugin-name/     # Test logs
+└── coverage/plugin-name/ # Code coverage
 ```
 
-## 🔄 Updating
+## 🛠️ Requirements
+
+### With Local WP (Recommended)
+- Just install Local WP - everything else included!
+- Download: https://localwp.com/
+
+### Without Local WP
+- PHP 8.0+, Node.js 16+, Composer, WP-CLI
+- See [docs/setup/REQUIREMENTS.md](docs/setup/REQUIREMENTS.md)
+
+## 🔄 Updating Framework
 
 ```bash
 # Get latest updates
@@ -196,61 +162,75 @@ npm install
 composer update
 ```
 
-## 🐛 Troubleshooting
+## 🚀 Installation Options
 
-### Local WP Issues
-
-**Can't find wp command:**
+### Option 1: Local WP (Recommended - 90% of users)
 ```bash
-# Local WP includes WP-CLI, just make sure you're in the site directory
 cd ~/Local\ Sites/your-site/app/public
+git clone https://github.com/vapvarun/wp-testing-framework.git
+cd wp-testing-framework
+./local-wp-setup.sh
 ```
 
-**Database connection failed:**
+### Option 2: Other Environments
 ```bash
-# Local WP uses root/root by default
-# The framework auto-configures this
-```
-
-### General Issues
-
-**Permission denied:**
-```bash
-chmod +x test-plugin.sh
-chmod +x local-wp-setup.sh
-```
-
-**Plugin not found:**
-```bash
-# Make sure plugin is installed
-wp plugin list
+git clone https://github.com/vapvarun/wp-testing-framework.git
+cd wp-testing-framework
+./setup.sh  # Auto-detects environment
 ```
 
 ## 📖 Documentation
 
-### Quick Guides (Main Folder)
-- **[Installation Guide](INSTALL.md)** - Quick setup instructions
-- **[bbPress Testing](BBPRESS-TESTING.md)** - Test bbPress plugin
-- **[BuddyPress Testing](BUDDYPRESS-TESTING.md)** - Test BuddyPress plugin
+### Quick Guides
+- **[Installation](INSTALL.md)** - Setup instructions
+- **[bbPress Testing](BBPRESS-TESTING.md)** - Test bbPress
+- **[BuddyPress Testing](BUDDYPRESS-TESTING.md)** - Test BuddyPress
 
-### Detailed Documentation
-- **[Setup Guides](docs/setup/)** - Installation, requirements, Local WP setup
-- **[Plugin Guides](docs/plugin-guides/)** - Plugin-specific testing documentation
-- **[Technical Docs](docs/technical/)** - Framework architecture and internals
+### Detailed Docs
+- **[Setup Guides](docs/setup/)** - Detailed installation
+- **[Plugin Guides](docs/plugin-guides/)** - Plugin-specific docs
+- **[Technical Docs](docs/technical/)** - Framework internals
+
+## 🐛 Troubleshooting
+
+### Local WP Issues
+
+**Can't find site directory?**
+```bash
+# Local WP sites are usually in:
+# Mac: ~/Local Sites/
+# Windows: C:\Users\{username}\Local Sites\
+# Linux: ~/Local Sites/
+```
+
+**Permission denied?**
+```bash
+chmod +x local-wp-setup.sh test-plugin.sh
+```
+
+**Database issues?**
+```bash
+# Local WP uses:
+# Username: root
+# Password: root
+# Host: localhost
+```
+
+## 💡 Pro Tips
+
+1. **Use Local WP** - Everything just works!
+2. **One command testing** - `./test-plugin.sh plugin-name`
+3. **Auto folder creation** - No manual setup needed
+4. **Check HTML reports** - Beautiful visual results
+5. **Keep updated** - `git pull origin main`
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+We welcome contributions! Fork and submit PRs.
 
 ## 📝 License
 
-MIT License - feel free to use in your projects!
+MIT License - Use freely in your projects!
 
 ## 🙏 Credits
 
@@ -263,6 +243,6 @@ Maintained by [@vapvarun](https://github.com/vapvarun)
 
 ---
 
-**Made with ❤️ for WordPress developers**
+**Made with ❤️ for WordPress developers using Local WP**
 
-*Test any plugin, anytime, with zero hassle!*
+*Test any plugin in 30 seconds - no configuration needed!*
