@@ -1,234 +1,268 @@
 # WP Testing Framework
 
-**Universal WordPress Plugin Testing Framework - v2.0**
+**Universal WordPress Plugin Testing Framework - Optimized for Local WP**
 
-A scalable, AI-optimized testing framework designed to comprehensively test any WordPress plugin. Built with clean architecture supporting 100+ plugins.
+🚀 Test ANY WordPress plugin with a single command. Zero configuration needed for Local WP users!
 
-## ✨ Key Features
+## ✨ Quick Start (30 seconds!)
 
-- **Universal Architecture**: Works with ANY WordPress plugin
-- **AI-Optimized**: Structured for automated analysis and decision-making  
-- **Comprehensive Testing**: Unit, integration, functional, security, and performance tests
-- **Code Analysis**: Deep scanning and pattern recognition
-- **Clean Separation**: Plugin-specific data isolated from framework core
-- **GitHub-Ready**: Only permanent, reusable data synced
-- **Self-Contained**: All dependencies included
-- **Scalable**: Designed for 100+ plugins
+### For Local WP Users (Recommended)
 
-## 📊 Framework Structure
+```bash
+# 1. Navigate to your Local WP site
+cd ~/Local\ Sites/your-site/app/public
+
+# 2. Clone and setup (one line!)
+git clone https://github.com/vapvarun/wp-testing-framework.git && cd wp-testing-framework && ./local-wp-setup.sh
+
+# 3. Test any plugin (auto-creates everything!)
+./test-plugin.sh bbpress
+```
+
+That's it! No configuration, no manual folder creation, everything automatic! 🎉
+
+### For Other Environments
+
+```bash
+git clone https://github.com/vapvarun/wp-testing-framework.git
+cd wp-testing-framework
+./fresh-install.sh
+```
+
+## 🎯 Testing Any Plugin
+
+```bash
+# Method 1: Direct command (recommended)
+./test-plugin.sh plugin-name
+
+# Method 2: NPM
+npm run test:plugin plugin-name
+
+# Method 3: Quick test
+npm run quick:test plugin-name
+```
+
+**Examples:**
+```bash
+./test-plugin.sh woocommerce
+./test-plugin.sh elementor
+./test-plugin.sh contact-form-7
+./test-plugin.sh wordpress-seo
+./test-plugin.sh buddypress
+```
+
+## 🔥 Key Features
+
+- **🚀 Zero Configuration** - Works instantly with Local WP
+- **📁 Auto-Creates Folders** - No manual setup needed
+- **🔍 Auto-Detects Environment** - Finds your site settings automatically
+- **📊 Comprehensive Testing** - Unit, integration, security, performance
+- **📈 Beautiful Reports** - HTML reports with all results
+- **🎨 Works with ANY Plugin** - Universal compatibility
+
+## 📋 What Gets Tested
+
+When you run `./test-plugin.sh plugin-name`, the framework:
+
+1. **Creates folder structure** (automatic)
+2. **Scans plugin code**
+3. **Runs security tests**
+4. **Checks performance**
+5. **Tests functionality**
+6. **Generates HTML report**
+
+## 📊 Test Reports
+
+Find your results in:
+- **Reports:** `workspace/reports/{plugin}/`
+- **Logs:** `workspace/logs/{plugin}/`
+- **Coverage:** `workspace/coverage/{plugin}/`
+
+## 🛠️ Requirements
+
+### Local WP (Recommended)
+- That's it! Local WP includes everything needed
+
+### Other Environments
+- PHP 8.0+
+- Node.js 16+
+- Composer
+- WordPress 5.9+
+- MySQL/MariaDB
+
+## 📚 Popular Plugin Tests
+
+### E-Commerce
+```bash
+./test-plugin.sh woocommerce
+./test-plugin.sh easy-digital-downloads
+./test-plugin.sh woocommerce-subscriptions
+./test-plugin.sh woocommerce-memberships
+```
+
+### Page Builders
+```bash
+./test-plugin.sh elementor
+./test-plugin.sh elementor-pro
+./test-plugin.sh beaver-builder
+./test-plugin.sh divi-builder
+./test-plugin.sh oxygen
+./test-plugin.sh bricks
+```
+
+### Forms
+```bash
+./test-plugin.sh contact-form-7
+./test-plugin.sh wpforms-lite
+./test-plugin.sh ninja-forms
+./test-plugin.sh gravity-forms
+./test-plugin.sh formidable
+```
+
+### SEO
+```bash
+./test-plugin.sh wordpress-seo      # Yoast
+./test-plugin.sh all-in-one-seo-pack
+./test-plugin.sh seo-framework
+./test-plugin.sh rank-math
+```
+
+### Community/Social
+```bash
+./test-plugin.sh buddypress
+./test-plugin.sh bbpress
+./test-plugin.sh buddyboss-platform
+./test-plugin.sh peepso
+./test-plugin.sh ultimate-member
+```
+
+### Security
+```bash
+./test-plugin.sh wordfence
+./test-plugin.sh sucuri-scanner
+./test-plugin.sh ithemes-security
+./test-plugin.sh all-in-one-wp-security
+```
+
+### Performance
+```bash
+./test-plugin.sh w3-total-cache
+./test-plugin.sh wp-rocket
+./test-plugin.sh wp-super-cache
+./test-plugin.sh litespeed-cache
+./test-plugin.sh autoptimize
+```
+
+## 🎨 Test Types
+
+```bash
+# Full test suite (default)
+./test-plugin.sh plugin-name
+
+# Quick test only
+./test-plugin.sh plugin-name quick
+
+# Security focused
+./test-plugin.sh plugin-name security
+
+# Performance focused
+./test-plugin.sh plugin-name performance
+```
+
+## 📁 Project Structure
 
 ```
 wp-testing-framework/
-├── src/                    # Universal framework code
-│   ├── Framework/          # Base classes
-│   ├── Generators/         # Test generators
-│   ├── Analyzers/          # Code analyzers
-│   └── Utilities/          # Helper utilities
-├── plugins/                # Plugin-specific data (permanent)
-│   └── buddypress/         # Example implementation
-│       ├── data/           # Test fixtures
-│       ├── tests/          # Test suites (716+ methods)
-│       ├── scanners/       # Custom scanners
-│       ├── models/         # Learning models
-│       └── analysis/       # Static analysis
-├── workspace/              # Ephemeral data (not synced)
-│   ├── reports/            # Generated reports
-│   ├── screenshots/        # Test screenshots
-│   └── logs/               # Debug logs
-├── templates/              # Plugin skeleton templates
-├── vendor/                 # PHP dependencies
-└── node_modules/           # Node dependencies
+├── test-plugin.sh          # Main test runner (auto-creates folders!)
+├── local-wp-setup.sh       # Local WP auto-setup
+├── plugins/                # Auto-created plugin test folders
+│   └── {plugin-name}/      # Created when you test
+│       ├── tests/          # Test files
+│       ├── analysis/       # Code analysis
+│       └── data/           # Test data
+├── workspace/              # Test outputs
+│   ├── reports/           # HTML reports
+│   ├── logs/              # Test logs
+│   └── coverage/          # Code coverage
+└── src/                   # Framework core
 ```
 
-## 🚀 Quick Start
-
-### 1. Initial Setup (One Time)
+## 🔄 Updating
 
 ```bash
-# From WordPress root, clone or copy wp-testing-framework
-cd wp-testing-framework
-./setup.sh
+# Get latest updates
+git pull origin main
+npm install
+composer update
 ```
 
-This installs everything inside `wp-testing-framework/`:
-- ✅ npm dependencies → `./node_modules/`
-- ✅ Composer dependencies → `./vendor/`
-- ✅ Playwright browsers
-- ✅ Local tool wrappers → `./bin/`
+## 🐛 Troubleshooting
 
-### 2. Test BuddyPress (or Any Plugin)
+### Local WP Issues
 
+**Can't find wp command:**
 ```bash
-# Full automated workflow
-npm run universal:buddypress
-
-# Or test any plugin
-npm run universal:full -- --plugin plugin-slug
+# Local WP includes WP-CLI, just make sure you're in the site directory
+cd ~/Local\ Sites/your-site/app/public
 ```
 
-### 3. Run Specific Tests
-
+**Database connection failed:**
 ```bash
-# Using local tools (no global dependencies needed)
-./vendor/bin/phpunit tests/generated/buddypress/
-./bin/test unit
-./bin/test bp members
-npx playwright test
+# Local WP uses root/root by default
+# The framework auto-configures this
 ```
 
-## 🎯 BuddyPress Testing Commands
+### General Issues
 
-All commands use the local `./vendor/bin/` tools:
-
+**Permission denied:**
 ```bash
-# Component testing
-npm run test:bp:all          # All components
-npm run test:bp:members       # Members component
-npm run test:bp:groups        # Groups component
-npm run test:bp:activity      # Activity streams
-
-# Analysis
-npm run functionality:analyze # What BuddyPress DOES
-npm run customer:analyze      # Business value analysis
-npm run ai:report             # AI-optimized reports
+chmod +x test-plugin.sh
+chmod +x local-wp-setup.sh
 ```
 
-## 📊 Generated Reports
-
-All reports are in the framework directory:
-
-```
-reports/
-├── ai-analysis/           # AI-ready reports for Claude Code
-├── customer-analysis/     # Business value & ROI
-└── execution/            # Test execution results
-
-tests/
-├── generated/            # Auto-generated test suites
-└── functionality/        # TRUE/FALSE test results
-```
-
-## 🔧 Directory Structure
-
-**Everything is self-contained:**
-
+**Plugin not found:**
 ```bash
-# PHP tools
-./vendor/bin/phpunit      # PHPUnit (local)
-./vendor/bin/composer     # Composer autoloader
-
-# Node tools  
-./node_modules/.bin/playwright  # Playwright (local)
-./node_modules/.bin/cypress     # Cypress (local)
-
-# Custom wrappers
-./bin/test                # Test runner wrapper
-./bin/phpunit            # PHPUnit wrapper
+# Make sure plugin is installed
+wp plugin list
 ```
 
-## 🔄 Development Workflow
+## 📖 Documentation
 
-### For BuddyNext Development
+### Quick Guides (Main Folder)
+- **[Installation Guide](INSTALL.md)** - Quick setup instructions
+- **[bbPress Testing](BBPRESS-TESTING.md)** - Test bbPress plugin
+- **[BuddyPress Testing](BUDDYPRESS-TESTING.md)** - Test BuddyPress plugin
 
-1. **Work in:** `/Users/varundubey/Local Sites/buddynext/app/public/wp-testing-framework/`
-2. **Scan data:** `../wp-content/uploads/wbcom-scan/`
-3. **Run tests:** Against live site at http://buddynext.local/
-4. **Sync to GitHub:** `./sync-to-github.sh`
+### Detailed Documentation
+- **[Setup Guides](docs/setup/)** - Installation, requirements, Local WP setup
+- **[Plugin Guides](docs/plugin-guides/)** - Plugin-specific testing documentation
+- **[Technical Docs](docs/technical/)** - Framework architecture and internals
 
-### For New WordPress Sites
+## 🤝 Contributing
 
-1. Copy entire `wp-testing-framework/` folder to WordPress root
-2. Run `./setup.sh`
-3. Start testing!
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
 
-## 🛠️ No Global Dependencies Required
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
 
-**Everything runs from within wp-testing-framework:**
+## 📝 License
 
-```bash
-# Instead of global phpunit:
-./vendor/bin/phpunit
+MIT License - feel free to use in your projects!
 
-# Instead of global playwright:
-npx playwright test
+## 🙏 Credits
 
-# Instead of global wp-cli (still needs system wp-cli):
-wp --path="../"
-```
+Maintained by [@vapvarun](https://github.com/vapvarun)
 
-## 📝 Configuration
+## 💬 Support
 
-All paths are relative to framework directory:
-
-- **Scan data:** `../wp-content/uploads/wbcom-scan/`
-- **WordPress root:** `../`
-- **Plugins:** `../wp-content/plugins/`
-
-## 🚨 Requirements
-
-System requirements (installed globally):
-- Node.js 18+
-- Composer
-- WP-CLI
-- WordPress installation
-
-Framework handles everything else locally!
-
-## 📋 Complete Command Reference
-
-```bash
-# Setup
-./setup.sh                     # Install everything locally
-
-# Scanning
-npm run scan:bp                # Scan BuddyPress
-
-# Full workflow
-npm run universal:buddypress   # Complete BuddyPress testing
-
-# Component tests
-npm run test:bp:members        # Test members component
-npm run test:bp:all           # Test all components
-
-# Analysis
-npm run functionality:analyze  # Functionality analysis
-npm run customer:analyze       # Customer value analysis
-npm run ai:report             # AI-optimized reports
-
-# Manual testing
-./vendor/bin/phpunit          # Run PHPUnit locally
-./bin/test unit               # Run unit tests
-./bin/test bp members         # Test specific component
-```
-
-## 🔄 Portability
-
-To use on a new WordPress site:
-
-1. **Copy entire folder:**
-   ```bash
-   cp -r wp-testing-framework /path/to/new/wordpress/
-   ```
-
-2. **Run setup:**
-   ```bash
-   cd /path/to/new/wordpress/wp-testing-framework
-   ./setup.sh
-   ```
-
-3. **Start testing:**
-   ```bash
-   npm run universal:buddypress
-   ```
-
-## 📦 What Makes This Self-Contained?
-
-- ✅ **No global PHP dependencies** - Uses `./vendor/bin/`
-- ✅ **No global Node dependencies** - Uses `./node_modules/.bin/`
-- ✅ **Portable configuration** - All paths are relative
-- ✅ **Single setup command** - `./setup.sh` installs everything
-- ✅ **Complete toolchain** - PHPUnit, Playwright, analyzers, generators
+- **Issues:** [GitHub Issues](https://github.com/vapvarun/wp-testing-framework/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/vapvarun/wp-testing-framework/discussions)
 
 ---
 
-**Ready to test ANY WordPress plugin with zero global dependencies!** 🚀
+**Made with ❤️ for WordPress developers**
+
+*Test any plugin, anytime, with zero hassle!*

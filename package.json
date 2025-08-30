@@ -4,6 +4,8 @@
   "description": "Universal WordPress Testing Framework - BuddyPress Tests",
   "private": true,
   "scripts": {
+    "test:plugin": "./test-plugin.sh",
+    "quick:test": "./test-plugin.sh",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "./vendor/bin/phpunit -c phpunit-unit.xml",
     "test:integration": "./vendor/bin/phpunit -c phpunit.xml",
