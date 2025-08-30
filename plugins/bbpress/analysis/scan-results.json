@@ -1,0 +1,9 @@
+{
+    "plugin": "bbpress",
+    "files": {
+        "php": 191,
+        "javascript": 16,
+        "css": 16
+    },
+    "scan_date": "2025-08-30T04:38:26Z"
+}

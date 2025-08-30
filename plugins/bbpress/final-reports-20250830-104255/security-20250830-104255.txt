@@ -1,0 +1,1 @@
+Error: WordPress installation not found

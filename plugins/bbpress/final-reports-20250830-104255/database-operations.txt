@@ -1,0 +1,18 @@
+# Database Operations in bbpress
+includes/extend/akismet.php:		$sql = "SELECT id FROM {$wpdb->posts} WHERE post_type IN ('topic', 'reply') AND post_status = 'spam' AND DATE_SUB(NOW(), INTERVAL %d DAY) > post_date_gmt LIMIT %d";
+includes/extend/akismet.php:		while ( $spam_ids = $wpdb->get_col( $wpdb->prepare( $sql, $delete_interval, $delete_limit ) ) ) {
+includes/extend/akismet.php:			$wpdb->queries = array();
+includes/extend/akismet.php:			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->posts} WHERE ID IN ( {$format_string} )", $spam_ids ) );
+includes/extend/akismet.php:			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->postmeta} WHERE post_id IN ( {$format_string} )", $spam_ids ) );
+includes/extend/akismet.php:		$optimize = (int) apply_filters( '_bbp_akismet_optimize_tables', mt_rand( 1, 5000 ), array( $wpdb->posts, $wpdb->postmeta ) );
+includes/extend/akismet.php:			$wpdb->query( "OPTIMIZE TABLE {$wpdb->posts}" );
+includes/extend/akismet.php:			$wpdb->query( "OPTIMIZE TABLE {$wpdb->postmeta}" );
+includes/extend/akismet.php:		$sql = "SELECT m.post_id FROM {$wpdb->postmeta} as m INNER JOIN {$wpdb->posts} as p ON m.post_id = p.ID WHERE m.meta_key = '_bbp_akismet_as_submitted' AND DATE_SUB(NOW(), INTERVAL %d DAY) > p.post_date_gmt LIMIT %d";
+includes/extend/akismet.php:		while ( $spam_ids = $wpdb->get_col( $wpdb->prepare( $sql, $delete_interval, $delete_limit ) ) ) {
+includes/extend/akismet.php:			$wpdb->queries = array();
+includes/extend/akismet.php:			. " FROM {$wpdb->postmeta} as m"
+includes/extend/akismet.php:			. " LEFT JOIN {$wpdb->posts} as p"
+includes/extend/akismet.php:		while ( $spam_meta_results = $wpdb->get_results( $wpdb->prepare( $sql, $last_meta_id, $delete_limit ) ) ) {
+includes/extend/akismet.php:			$wpdb->queries = array();
+includes/extend/akismet.php:		$optimize = (int) apply_filters( '_bbp_akismet_optimize_table', mt_rand( 1, 5000 ), $wpdb->postmeta );
+includes/extend/akismet.php:			$wpdb->query( "OPTIMIZE TABLE {$wpdb->postmeta}" );

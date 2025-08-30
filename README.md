@@ -1,39 +1,62 @@
 # WP Testing Framework
 
-**Universal WordPress Plugin Testing - Optimized for Local WP**
+**🤖 AI-Driven WordPress Plugin Testing Framework**
 
-🚀 Test ANY WordPress plugin in 30 seconds with zero configuration!
+Complete plugin analysis with integrated security scanning, performance profiling, and AI-ready reports for test generation!
+
+## ✨ What's New: Complete Integration!
+
+One command now runs **ALL testing tools** in 8 automated phases:
+1. **Setup** - Auto-creates all directories
+2. **Detection** - Finds and activates plugins
+3. **AI Analysis** - Scans functions, classes, hooks (2,431+ for bbPress!)
+4. **Security** - Vulnerability scanning with security-scanner.php
+5. **Performance** - Memory/load profiling with performance-profiler.php
+6. **Testing** - Coverage analysis with test-coverage-report.php
+7. **AI Reports** - Claude-ready analysis files
+8. **Dashboard** - Beautiful HTML visualization
 
 ## ✨ Quick Start (Local WP)
 
 ### Mac/Linux Users
 ```bash
-# 1. Open Local WP and navigate to your site
+# 1. Navigate to your Local WP site
 cd ~/Local\ Sites/your-site/app/public
 
 # 2. Clone and setup (one command!)
 git clone https://github.com/vapvarun/wp-testing-framework.git && cd wp-testing-framework && ./local-wp-setup.sh
 
-# 3. Test any plugin
-./test-plugin.sh plugin-name
+# 3. Run complete AI-driven analysis
+./test-plugin.sh bbpress
+
+# Watch as it analyzes:
+# ✅ 2,431 functions
+# ✅ 63 classes
+# ✅ 2,059 hooks
+# ✅ Security vulnerabilities
+# ✅ Performance metrics
+# ✅ Test coverage
 ```
 
 ### Windows Users
 ```powershell
-# 1. Open Local WP "Site Shell" (PowerShell)
-
-# 2. Clone and setup
+# Use Git Bash (recommended) or PowerShell
+cd "C:\Users\[YourName]\Local Sites\[site]\app\public"
 git clone https://github.com/vapvarun/wp-testing-framework.git
 cd wp-testing-framework
-.\local-wp-setup.ps1
 
-# 3. Test any plugin
-.\test-plugin.ps1 plugin-name
+# Git Bash
+./local-wp-setup.sh
+./test-plugin.sh bbpress
+
+# PowerShell
+.\local-wp-setup.ps1
+.\test-plugin.ps1 bbpress
 ```
 
-**That's it!** Works on all platforms. Everything is automatic! 🎉
-
-📘 **Windows Users:** See [WINDOWS-SETUP.md](WINDOWS-SETUP.md) for detailed guide
+📘 **Full Guides:** 
+- [Mac/Linux Setup](docs/setup/LOCAL-WP-QUICK-START.md)
+- [Windows Setup](docs/setup/WINDOWS-SETUP-GUIDE.md)
 
 ## 🎯 How It Works
 
@@ -44,45 +67,57 @@ The framework automatically:
 4. **Creates folders** when testing
 5. **Generates reports** instantly
 
-## 📦 Testing Any Plugin
+## 📦 Testing Any Plugin - Now with AI Analysis!
 
-### Mac/Linux
-```bash
-# Just one command - folders created automatically!
-./test-plugin.sh woocommerce
-./test-plugin.sh elementor
-./test-plugin.sh bbpress
-```
-
-### Windows (PowerShell)
-```powershell
-# Same simple commands for Windows!
-.\test-plugin.ps1 woocommerce
-.\test-plugin.ps1 elementor
-.\test-plugin.ps1 bbpress
-```
-
-### Test Types (All Platforms)
+### Complete Analysis (All Tools Integrated)
 ```bash
 # Mac/Linux
-./test-plugin.sh plugin-name         # Full test suite
-./test-plugin.sh plugin-name quick   # Quick test only
+./test-plugin.sh woocommerce           # Full 8-phase analysis
+./test-plugin.sh elementor quick       # Quick essential tests
+./test-plugin.sh wordfence security    # Security focus
+./test-plugin.sh wp-rocket performance # Performance focus
+./test-plugin.sh yoast-seo ai         # AI analysis mode
 
-# Windows
-.\test-plugin.ps1 plugin-name        # Full test suite
-.\test-plugin.ps1 plugin-name quick  # Quick test only
+# Windows (Git Bash or PowerShell)
+.\test-plugin.ps1 woocommerce
+.\test-plugin.ps1 elementor quick
 ```
 
-## 📊 View Results
+### What Gets Analyzed
+- **Functions** - Every PHP function documented
+- **Classes** - All class structures mapped
+- **Hooks** - WordPress actions/filters identified
+- **Security** - Vulnerabilities scanned (XSS, SQL injection, eval)
+- **Performance** - Memory usage, load time, file sizes
+- **Database** - SQL queries analyzed
+- **AJAX/REST** - API endpoints documented
+- **Coverage** - Test coverage calculated
 
-After testing, find your results:
+## 📊 Generated Reports & AI Files
+
+### Visual Dashboard
 ```bash
-# Open HTML report
+# Open beautiful HTML report
 open workspace/reports/plugin-name/report-*.html
-
-# Check logs
-cat workspace/logs/plugin-name/*.log
 ```
+
+### AI Analysis Files (Feed to Claude!)
+```bash
+# Complete AI report
+cat workspace/ai-reports/plugin-name/ai-analysis-report.md
+
+# Detailed lists
+cat workspace/ai-reports/plugin-name/functions-list.txt    # All functions
+cat workspace/ai-reports/plugin-name/classes-list.txt      # All classes
+cat workspace/ai-reports/plugin-name/hooks-list.txt        # All hooks
+cat workspace/ai-reports/plugin-name/security-analysis.txt # Security findings
+```
+
+### How to Use with Claude
+1. Run analysis: `./test-plugin.sh your-plugin`
+2. Copy AI report: `cat workspace/ai-reports/your-plugin/ai-analysis-report.md`
+3. Paste to Claude: "Generate comprehensive PHPUnit tests for these functions"
+4. Claude generates complete test suites based on your analysis!
 
 ## 🔥 Why Local WP?
 
@@ -148,25 +183,39 @@ Local WP is the preferred environment because:
 ./test-plugin.sh autoptimize
 ```
 
+## 🛠️ Integrated Testing Tools
+
+All PHP testing tools now run automatically in sequence:
+
+1. **Built-in AI Scanner** - Extracts functions, classes, hooks
+2. **security-scanner.php** - Vulnerability detection
+3. **performance-profiler.php** - Memory and load analysis
+4. **test-coverage-report.php** - Coverage metrics
+5. **component-test-dashboard.php** - Visual test status
+
 ## 📁 What Gets Created Automatically
 
 When you run `./test-plugin.sh plugin-name`:
 
 ```
-plugins/plugin-name/
-├── test-config.json      # Auto-generated config
-├── tests/                # Test suites
-│   ├── unit/
-│   ├── integration/
-│   ├── security/
-│   └── performance/
-├── analysis/             # Code analysis
-└── data/                 # Test fixtures
-
 workspace/
-├── reports/plugin-name/  # HTML reports
-├── logs/plugin-name/     # Test logs
-└── coverage/plugin-name/ # Code coverage
+├── ai-reports/plugin-name/
+│   ├── ai-analysis-report.md    # Complete AI report
+│   ├── functions-list.txt       # All functions (e.g., 2,431 for bbPress)
+│   ├── classes-list.txt         # All classes (e.g., 63 for bbPress)
+│   ├── hooks-list.txt           # All hooks (e.g., 2,059 for bbPress)
+│   ├── database-operations.txt  # SQL queries
+│   ├── ajax-handlers.txt        # AJAX endpoints
+│   ├── security-analysis.txt    # Security findings
+│   └── summary.json             # Machine-readable data
+├── reports/plugin-name/
+│   ├── report-*.html            # Beautiful dashboard
+│   ├── security-*.txt           # Security scan results
+│   ├── performance-*.txt        # Performance metrics
+│   └── coverage-*.txt           # Test coverage
+└── plugins/plugin-name/
+    ├── test-config.json          # Auto-generated config
+    └── tests/                    # Generated test suites
 ```
 
 ## 🛠️ Requirements

@@ -25,18 +25,29 @@ git clone https://github.com/vapvarun/wp-testing-framework.git && cd wp-testing-
    - No manual folder creation needed
    - Happens automatically when you test
 
-## 🎯 Testing Any Plugin (Super Simple!)
+## 🎯 Testing Any Plugin - Complete AI-Driven Analysis!
 
 ```bash
-# Just run this - folders are created automatically!
-npm run test:plugin bbpress
+# NEW: Complete integrated testing with AI analysis
+./test-plugin.sh bbpress
 
-# Or test multiple aspects
-npm run test:plugin woocommerce --full
-
-# Quick test
-npm run quick:test elementor
+# Or specify test type:
+./test-plugin.sh woocommerce full       # Complete analysis (default)
+./test-plugin.sh elementor quick        # Quick tests only
+./test-plugin.sh wordfence security     # Security focus
+./test-plugin.sh wp-rocket performance  # Performance focus
+./test-plugin.sh yoast-seo ai          # AI analysis mode
 ```
+
+### 🤖 What the Integrated Script Does (8 Phases):
+1. **Setup** - Creates all directories automatically
+2. **Detection** - Finds and activates the plugin
+3. **AI Analysis** - Scans all functions, classes, hooks (2,431+ for bbPress!)
+4. **Security** - Runs security scanner, checks for vulnerabilities
+5. **Performance** - Profiles memory, load time, file sizes
+6. **Testing** - Generates and runs tests, coverage reports
+7. **AI Reports** - Creates Claude-ready analysis files
+8. **Dashboard** - Generates beautiful HTML reports
 
 ## 🔧 How It Works
 
@@ -67,69 +78,79 @@ WP_TEST_URL=http://{sitename}.local
 
 ## 🎭 Common Local WP Sites
 
-### Testing Popular Plugins
+### Testing Popular Plugins with AI Analysis
 
 ```bash
-# E-commerce
-npm run test:plugin woocommerce
-npm run test:plugin easy-digital-downloads
+# E-commerce (Analyzes payment flows, cart logic, checkout security)
+./test-plugin.sh woocommerce
+./test-plugin.sh easy-digital-downloads
 
-# Page Builders  
-npm run test:plugin elementor
-npm run test:plugin beaver-builder
-npm run test:plugin divi-builder
+# Page Builders (Scans widgets, elements, rendering performance)
+./test-plugin.sh elementor
+./test-plugin.sh beaver-builder
+./test-plugin.sh divi-builder
 
-# SEO
-npm run test:plugin wordpress-seo  # Yoast
-npm run test:plugin all-in-one-seo-pack
+# SEO (Reviews meta handling, schema, performance impact)
+./test-plugin.sh wordpress-seo      # Yoast
+./test-plugin.sh all-in-one-seo-pack
 
-# Forms
-npm run test:plugin contact-form-7
-npm run test:plugin wpforms-lite
-npm run test:plugin ninja-forms
+# Forms (Checks validation, sanitization, AJAX handlers)
+./test-plugin.sh contact-form-7
+./test-plugin.sh wpforms-lite
+./test-plugin.sh ninja-forms
 
-# Community/Forum
-npm run test:plugin buddypress
-npm run test:plugin bbpress
+# Community/Forum (2,431 functions, 2,059 hooks for bbPress!)
+./test-plugin.sh buddypress
+./test-plugin.sh bbpress
 
-# Security
-npm run test:plugin wordfence
-npm run test:plugin sucuri-scanner
+# Security (Deep vulnerability scanning)
+./test-plugin.sh wordfence security
+./test-plugin.sh sucuri-scanner security
 
-# Performance
-npm run test:plugin w3-total-cache
-npm run test:plugin wp-rocket
+# Performance (Memory profiling, cache analysis)
+./test-plugin.sh w3-total-cache performance
+./test-plugin.sh wp-rocket performance
 ```
 
 ## 🏃 Quick Commands
 
 ```bash
-# Full test suite (everything)
-npm run test:plugin {plugin} --full
+# Complete AI-driven analysis (all 8 phases)
+./test-plugin.sh {plugin}
 
-# Quick test (essential checks only)
-npm run quick:test {plugin}
+# Specific test types
+./test-plugin.sh {plugin} full         # Everything (default)
+./test-plugin.sh {plugin} quick        # Essential checks only
+./test-plugin.sh {plugin} security     # Security scanning focus
+./test-plugin.sh {plugin} performance  # Performance profiling
+./test-plugin.sh {plugin} ai          # AI analysis mode
 
-# Security focus
-npm run test:plugin {plugin} --security
+# View results
+open workspace/reports/{plugin}/report-*.html
 
-# Performance focus
-npm run test:plugin {plugin} --performance
-
-# Generate report
-npm run report {plugin}
-
-# Clean workspace
-npm run clean
+# Feed to Claude for test generation
+cat workspace/ai-reports/{plugin}/ai-analysis-report.md
 ```
 
-## 📊 Output Locations
+## 📊 Output Locations & What's Generated
 
-After testing, find results in:
-- **Reports:** `workspace/reports/{plugin}/`
-- **Coverage:** `workspace/coverage/{plugin}/`
-- **Logs:** `workspace/logs/{plugin}/`
-- **Screenshots:** `workspace/screenshots/{plugin}/`
+After testing, find comprehensive results:
+
+### AI Analysis Files (`workspace/ai-reports/{plugin}/`)
+- `ai-analysis-report.md` - Complete report for Claude
+- `functions-list.txt` - All PHP functions (e.g., 2,431 for bbPress)
+- `classes-list.txt` - All PHP classes
+- `hooks-list.txt` - WordPress hooks
+- `database-operations.txt` - SQL queries
+- `ajax-handlers.txt` - AJAX endpoints
+- `security-analysis.txt` - Security findings
+- `summary.json` - Machine-readable metrics
+
+### Test Reports (`workspace/reports/{plugin}/`)
+- `report-*.html` - Beautiful visual dashboard
+- `security-*.txt` - Security scanner results
+- `performance-*.txt` - Performance profiler data
+- `coverage-*.txt` - Test coverage analysis
 
 ## 🔄 Updating Framework
 
@@ -166,11 +187,11 @@ Local WP typically uses:
 3. **SSL Available:** Use https://{site}.local
 4. **Adminer:** Database GUI at {site}.local/adminer
 
-## 📝 Example Workflow
+## 📝 Example Complete Workflow
 
 ```bash
 # 1. Clone fresh site in Local WP
-# 2. Install plugin you want to test
+# 2. Install plugin you want to test (e.g., bbPress)
 # 3. Navigate to public directory
 cd ~/Local\ Sites/mysite/app/public
 
@@ -178,14 +199,27 @@ cd ~/Local\ Sites/mysite/app/public
 git clone https://github.com/vapvarun/wp-testing-framework.git
 cd wp-testing-framework
 
-# 5. Run setup
+# 5. Run automatic setup for Local WP
 ./local-wp-setup.sh
 
-# 6. Test the plugin (auto-creates folders!)
-npm run test:plugin my-awesome-plugin
+# 6. Run complete AI-driven analysis (all tools integrated!)
+./test-plugin.sh bbpress
 
-# 7. View results
-open workspace/reports/my-awesome-plugin/index.html
+# 7. Watch the magic happen:
+#    ✅ 2,431 functions analyzed
+#    ✅ 63 classes documented
+#    ✅ 2,059 hooks identified
+#    ✅ Security vulnerabilities checked
+#    ✅ Performance profiled
+#    ✅ Test coverage calculated
+#    ✅ AI reports generated
+
+# 8. View beautiful HTML dashboard
+open workspace/reports/bbpress/report-*.html
+
+# 9. Feed to Claude for test generation
+cat workspace/ai-reports/bbpress/ai-analysis-report.md
+# Copy and paste to Claude: "Generate PHPUnit tests for these functions"
 ```
 
 ## 🤝 Contributing
