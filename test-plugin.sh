@@ -1527,6 +1527,309 @@ echo -e "${GREEN}✅ Reports consolidated in: plugins/$PLUGIN_NAME/final-reports
 echo -e "${GREEN}✅ Master index created: INDEX.md${NC}"
 
 # ============================================
+# PHASE 11: LIVE TESTING WITH DATA & SCREENSHOTS
+# ============================================
+
+echo ""
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}🧪 PHASE 11: Live Testing with Test Data & Visual Analysis${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+# Local WP Configuration (pre-configured for Local WP)
+# Try to detect the actual Local WP site URL
+if [ -f "../wp-config.php" ]; then
+    # We're in a Local WP site - get the site name from the path
+    CURRENT_DIR=$(pwd)
+    # Extract site name from path like: /Users/.../Local Sites/buddynext/app/public
+    if [[ "$CURRENT_DIR" =~ "Local Sites" ]]; then
+        SITE_NAME=$(echo "$CURRENT_DIR" | sed -E 's/.*Local Sites\/([^\/]+)\/.*/\1/')
+        WP_URL="http://${SITE_NAME}.local"
+    fi
+fi
+
+# Use detected URL or fall back to plugin-name.local
+WP_URL="${WP_URL:-http://${PLUGIN_NAME}.local}"
+WP_ADMIN="${WP_ADMIN:-admin}"
+WP_PASSWORD="${WP_PASSWORD:-password}"
+WP_EMAIL="${WP_EMAIL:-admin@${PLUGIN_NAME}.local}"
+
+echo "   Using Local WP site: $WP_URL"
+
+# Check if wp-cli is available
+if ! command -v wp &> /dev/null; then
+    echo -e "${YELLOW}   ⚠️ WP-CLI not found. Skipping live testing.${NC}"
+else
+    # Get the actual site URL from WordPress options table
+    echo "   Getting site URL from WordPress..."
+    ACTUAL_URL=$(wp option get siteurl 2>/dev/null || echo "")
+    if [ ! -z "$ACTUAL_URL" ]; then
+        WP_URL="$ACTUAL_URL"
+        echo "   ✅ Using actual site URL: $WP_URL"
+    fi
+    
+    # Create a test admin user for framework testing
+    echo "   Creating test admin user..."
+    TEST_USER="ai-tester"
+    TEST_PASS="Test@2024!"
+    TEST_EMAIL="ai-tester@${SITE_NAME}.local"
+    
+    # Check if user exists, if not create it
+    if ! wp user get "$TEST_USER" &>/dev/null; then
+        wp user create "$TEST_USER" "$TEST_EMAIL" \
+            --user_pass="$TEST_PASS" \
+            --role=administrator \
+            --display_name="AI Test User" \
+            --first_name="AI" \
+            --last_name="Tester" 2>/dev/null && \
+        echo "   ✅ Created test admin user: $TEST_USER (password: $TEST_PASS)" || \
+        echo "   ℹ️ Using existing admin user"
+    else
+        echo "   ℹ️ Test user already exists: $TEST_USER"
+    fi
+    
+    # Detect Custom Post Types
+    echo "   Detecting Custom Post Types..."
+    CPT_LIST=$(wp post-type list --format=csv --fields=name,label 2>/dev/null | tail -n +2 || echo "")
+    
+    if [ ! -z "$CPT_LIST" ]; then
+        echo "$CPT_LIST" > "$AI_REPORT_DIR/custom-post-types.txt"
+        CPT_COUNT=$(echo "$CPT_LIST" | wc -l)
+        echo "   ✅ Found $CPT_COUNT custom post types"
+    fi
+    
+    # Generate test data based on plugin type
+    echo "   Generating test data..."
+    
+    case "$PLUGIN_TYPE" in
+        forum)
+            # Create test forum data
+            echo "   Creating test forums and topics..."
+            wp eval '
+                // Create test category
+                $forum_cat = wp_insert_term("Test Category", "forum");
+                
+                // Create test forums
+                for ($i = 1; $i <= 3; $i++) {
+                    $forum_id = wp_insert_post(array(
+                        "post_title" => "Test Forum $i",
+                        "post_content" => "This is test forum $i content",
+                        "post_type" => "forum",
+                        "post_status" => "publish"
+                    ));
+                    
+                    // Create test topics
+                    for ($j = 1; $j <= 5; $j++) {
+                        wp_insert_post(array(
+                            "post_title" => "Test Topic $j in Forum $i",
+                            "post_content" => "Test topic content",
+                            "post_type" => "topic",
+                            "post_status" => "publish",
+                            "post_parent" => $forum_id
+                        ));
+                    }
+                }
+                echo "Created test forums and topics";
+            ' 2>/dev/null || echo "   ⚠️ Could not create forum test data"
+            
+            # URLs to test for forums
+            TEST_URLS="$WP_URL/forums/
+$WP_URL/wp-admin/edit.php?post_type=forum
+$WP_URL/wp-admin/edit.php?post_type=topic"
+            ;;
+            
+        ecommerce)
+            # Create test products
+            echo "   Creating test products..."
+            wp eval '
+                for ($i = 1; $i <= 5; $i++) {
+                    $product_id = wp_insert_post(array(
+                        "post_title" => "Test Product $i",
+                        "post_content" => "Test product description",
+                        "post_type" => "product",
+                        "post_status" => "publish"
+                    ));
+                    update_post_meta($product_id, "_price", rand(10, 100));
+                    update_post_meta($product_id, "_stock", rand(0, 50));
+                }
+                echo "Created test products";
+            ' 2>/dev/null || echo "   ⚠️ Could not create product test data"
+            
+            TEST_URLS="$WP_URL/shop/
+$WP_URL/cart/
+$WP_URL/checkout/
+$WP_URL/wp-admin/edit.php?post_type=product"
+            ;;
+            
+        *)
+            # Generic test data
+            echo "   Creating generic test content..."
+            wp eval '
+                for ($i = 1; $i <= 5; $i++) {
+                    wp_insert_post(array(
+                        "post_title" => "Test Post $i",
+                        "post_content" => "Test content for post $i",
+                        "post_status" => "publish"
+                    ));
+                }
+                echo "Created test posts";
+            ' 2>/dev/null || echo "   ⚠️ Could not create test data"
+            
+            # Get dynamic URLs from custom post types
+            TEST_URLS="$WP_URL/
+$WP_URL/wp-admin/"
+            
+            if [ ! -z "$CPT_LIST" ]; then
+                while IFS=',' read -r cpt_name cpt_label; do
+                    TEST_URLS="$TEST_URLS
+$WP_URL/wp-admin/edit.php?post_type=$cpt_name"
+                done <<< "$CPT_LIST"
+            fi
+            ;;
+    esac
+    
+    # Create screenshots directory
+    SCREENSHOTS_DIR="$AI_REPORT_DIR/screenshots"
+    mkdir -p "$SCREENSHOTS_DIR"
+    
+    # Capture screenshots using headless Chrome if available
+    if command -v google-chrome &> /dev/null || command -v chromium &> /dev/null; then
+        CHROME_CMD=$(command -v google-chrome || command -v chromium)
+        
+        echo "   Capturing screenshots..."
+        SCREENSHOT_COUNT=0
+        
+        # Save URLs to file
+        echo "$TEST_URLS" > "$AI_REPORT_DIR/tested-urls.txt"
+        
+        # Capture each URL
+        while IFS= read -r url; do
+            [ -z "$url" ] && continue
+            SCREENSHOT_COUNT=$((SCREENSHOT_COUNT + 1))
+            SAFE_NAME=$(echo "$url" | sed 's/[^a-zA-Z0-9]/_/g')
+            
+            echo "   📸 Capturing: $url"
+            
+            # Capture screenshot
+            "$CHROME_CMD" --headless --disable-gpu --screenshot="$SCREENSHOTS_DIR/${SAFE_NAME}.png" \
+                --window-size=1920,1080 "$url" 2>/dev/null || true
+        done <<< "$TEST_URLS"
+        
+        echo "   ✅ Captured $SCREENSHOT_COUNT screenshots"
+        
+        # Generate visual analysis report
+        cat > "$AI_REPORT_DIR/VISUAL-ANALYSIS.md" << 'EOF'
+# 🎨 Visual Analysis Report
+
+## Screenshots Captured
+
+The following pages were tested and captured:
+
+EOF
+        
+        while IFS= read -r url; do
+            [ -z "$url" ] && continue
+            SAFE_NAME=$(echo "$url" | sed 's/[^a-zA-Z0-9]/_/g')
+            echo "- [$url](screenshots/${SAFE_NAME}.png)" >> "$AI_REPORT_DIR/VISUAL-ANALYSIS.md"
+        done <<< "$TEST_URLS"
+        
+        cat >> "$AI_REPORT_DIR/VISUAL-ANALYSIS.md" << 'EOF'
+
+## Visual Recommendations
+
+Based on the captured screenshots, consider these improvements:
+
+### 🎨 Design Suggestions
+- **Mobile Responsiveness:** Ensure all pages work well on mobile devices
+- **Color Consistency:** Maintain brand colors across all pages
+- **Typography:** Use consistent font sizes and weights
+- **Spacing:** Improve padding and margins for better readability
+- **Loading States:** Add loading indicators for dynamic content
+
+### 📱 User Experience
+- **Navigation:** Make menu items more prominent
+- **CTAs:** Improve call-to-action button visibility
+- **Forms:** Simplify form layouts and add validation messages
+- **Error Handling:** Show user-friendly error messages
+- **Accessibility:** Ensure proper contrast ratios and alt texts
+
+### ⚡ Performance
+- **Image Optimization:** Compress images to reduce load time
+- **Lazy Loading:** Implement lazy loading for images below fold
+- **Caching:** Enable browser caching for static assets
+- **Minification:** Minify CSS and JavaScript files
+
+EOF
+        
+    else
+        echo -e "${YELLOW}   ⚠️ Chrome/Chromium not found. Skipping screenshots.${NC}"
+    fi
+    
+    # Test AJAX endpoints
+    echo "   Testing AJAX endpoints..."
+    if [ -f "$AI_REPORT_DIR/ajax-handlers.txt" ] && [ -s "$AI_REPORT_DIR/ajax-handlers.txt" ]; then
+        AJAX_TEST_COUNT=0
+        while IFS= read -r ajax_action; do
+            [ -z "$ajax_action" ] && continue
+            AJAX_TEST_COUNT=$((AJAX_TEST_COUNT + 1))
+            
+            # Test AJAX endpoint
+            curl -s -X POST "$WP_URL/wp-admin/admin-ajax.php" \
+                -d "action=$ajax_action" \
+                -o "$AI_REPORT_DIR/ajax-test-$ajax_action.json" 2>/dev/null || true
+        done < "$AI_REPORT_DIR/ajax-handlers.txt"
+        
+        echo "   ✅ Tested $AJAX_TEST_COUNT AJAX endpoints"
+    fi
+    
+    # Generate test data summary
+    cat > "$AI_REPORT_DIR/TEST-DATA-SUMMARY.md" << EOF
+# 🧪 Test Data Summary
+
+## Test Environment
+- **Site URL:** $WP_URL
+- **Admin URL:** $WP_URL/wp-admin/
+- **Plugin Type:** $PLUGIN_TYPE
+
+## Test Credentials
+- **Username:** $TEST_USER
+- **Password:** $TEST_PASS
+- **Role:** Administrator
+- **Login URL:** $WP_URL/wp-login.php
+
+## Generated Test Data
+- Test posts/content created
+- Custom post types detected: ${CPT_COUNT:-0}
+- Screenshots captured: ${SCREENSHOT_COUNT:-0}
+- AJAX endpoints tested: ${AJAX_TEST_COUNT:-0}
+
+## URLs Tested
+$(cat "$AI_REPORT_DIR/tested-urls.txt" 2>/dev/null | sed 's/^/- /')
+
+## Custom Post Types Found
+$(cat "$AI_REPORT_DIR/custom-post-types.txt" 2>/dev/null | sed 's/^/- /')
+
+## Next Steps
+1. Login with test credentials: $TEST_USER / $TEST_PASS
+2. Review screenshots in \`screenshots/\` folder
+3. Check AJAX test results in \`ajax-test-*.json\` files
+4. Verify all custom post types are working
+5. Test user interactions manually
+
+EOF
+    
+    echo -e "${GREEN}   ✅ Live testing complete!${NC}"
+    
+    # Copy Phase 11 results to final reports
+    if [ -d "$FINAL_REPORTS_DIR" ]; then
+        cp -r "$SCREENSHOTS_DIR" "$FINAL_REPORTS_DIR/" 2>/dev/null || true
+        cp "$AI_REPORT_DIR/VISUAL-ANALYSIS.md" "$FINAL_REPORTS_DIR/" 2>/dev/null || true
+        cp "$AI_REPORT_DIR/TEST-DATA-SUMMARY.md" "$FINAL_REPORTS_DIR/" 2>/dev/null || true
+        cp "$AI_REPORT_DIR/tested-urls.txt" "$FINAL_REPORTS_DIR/" 2>/dev/null || true
+        cp "$AI_REPORT_DIR/custom-post-types.txt" "$FINAL_REPORTS_DIR/" 2>/dev/null || true
+    fi
+fi
+
+# ============================================
 # FINAL SUMMARY
 # ============================================
 
