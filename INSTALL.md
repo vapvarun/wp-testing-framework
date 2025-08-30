@@ -4,6 +4,7 @@
 
 90% of users should use this method with Local WP:
 
+### Mac/Linux
 ```bash
 # 1. Open Local WP and navigate to your site
 cd ~/Local\ Sites/your-site/app/public
@@ -15,7 +16,22 @@ git clone https://github.com/vapvarun/wp-testing-framework.git && cd wp-testing-
 ./test-plugin.sh plugin-name
 ```
 
-**Done!** Zero configuration needed with Local WP! 🎉
+### Windows
+```powershell
+# 1. Open Local WP "Site Shell" (PowerShell)
+
+# 2. Clone and setup
+git clone https://github.com/vapvarun/wp-testing-framework.git
+cd wp-testing-framework
+.\local-wp-setup.ps1
+
+# 3. Test any plugin immediately
+.\test-plugin.ps1 plugin-name
+```
+
+**Done!** Zero configuration needed with Local WP on any platform! 🎉
+
+📘 **Windows Guide:** [WINDOWS-SETUP.md](WINDOWS-SETUP.md)
 
 ## ✅ What Local WP Setup Does
 

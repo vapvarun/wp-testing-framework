@@ -6,6 +6,7 @@
 
 ## ✨ Quick Start (Local WP)
 
+### Mac/Linux Users
 ```bash
 # 1. Open Local WP and navigate to your site
 cd ~/Local\ Sites/your-site/app/public
@@ -17,7 +18,22 @@ git clone https://github.com/vapvarun/wp-testing-framework.git && cd wp-testing-
 ./test-plugin.sh plugin-name
 ```
 
-**That's it!** No configuration needed. Everything is automatic! 🎉
+### Windows Users
+```powershell
+# 1. Open Local WP "Site Shell" (PowerShell)
+
+# 2. Clone and setup
+git clone https://github.com/vapvarun/wp-testing-framework.git
+cd wp-testing-framework
+.\local-wp-setup.ps1
+
+# 3. Test any plugin
+.\test-plugin.ps1 plugin-name
+```
+
+**That's it!** Works on all platforms. Everything is automatic! 🎉
+
+📘 **Windows Users:** See [WINDOWS-SETUP.md](WINDOWS-SETUP.md) for detailed guide
 
 ## 🎯 How It Works
 
@@ -30,21 +46,31 @@ The framework automatically:
 
 ## 📦 Testing Any Plugin
 
+### Mac/Linux
 ```bash
 # Just one command - folders created automatically!
 ./test-plugin.sh woocommerce
 ./test-plugin.sh elementor
 ./test-plugin.sh bbpress
-./test-plugin.sh buddypress
-./test-plugin.sh contact-form-7
 ```
 
-### Test Types
+### Windows (PowerShell)
+```powershell
+# Same simple commands for Windows!
+.\test-plugin.ps1 woocommerce
+.\test-plugin.ps1 elementor
+.\test-plugin.ps1 bbpress
+```
+
+### Test Types (All Platforms)
 ```bash
+# Mac/Linux
 ./test-plugin.sh plugin-name         # Full test suite
 ./test-plugin.sh plugin-name quick   # Quick test only
-./test-plugin.sh plugin-name security # Security focus
-./test-plugin.sh plugin-name performance # Performance focus
+
+# Windows
+.\test-plugin.ps1 plugin-name        # Full test suite
+.\test-plugin.ps1 plugin-name quick  # Quick test only
 ```
 
 ## 📊 View Results
