@@ -1597,6 +1597,38 @@ else
         echo "   ✅ Found $CPT_COUNT custom post types"
     fi
     
+    # Generate comprehensive URL list based on discovered features
+    echo "   Building URL list from AI analysis..."
+    
+    # Start with base URLs
+    TEST_URLS="$WP_URL/
+$WP_URL/wp-admin/
+$WP_URL/wp-admin/plugins.php"
+    
+    # Add CPT-based URLs
+    if [ ! -z "$CPT_LIST" ]; then
+        while IFS=',' read -r cpt_name cpt_label; do
+            # Skip WordPress defaults
+            if [[ "$cpt_name" != "post" && "$cpt_name" != "page" && "$cpt_name" != "attachment" ]]; then
+                TEST_URLS="$TEST_URLS
+$WP_URL/wp-admin/edit.php?post_type=$cpt_name
+$WP_URL/wp-admin/post-new.php?post_type=$cpt_name
+$WP_URL/$cpt_name/"
+            fi
+        done <<< "$CPT_LIST"
+    fi
+    
+    # Add plugin settings pages (if detected)
+    if [ -f "$AI_REPORT_DIR/admin-pages.txt" ]; then
+        while IFS= read -r admin_page; do
+            TEST_URLS="$TEST_URLS
+$WP_URL/wp-admin/$admin_page"
+        done < "$AI_REPORT_DIR/admin-pages.txt"
+    fi
+    
+    # Save URLs before data generation
+    echo "$TEST_URLS" > "$AI_REPORT_DIR/tested-urls.txt"
+    
     # Generate test data based on plugin type
     echo "   Generating test data..."
     
@@ -1691,15 +1723,30 @@ $WP_URL/wp-admin/edit.php?post_type=$cpt_name"
     SCREENSHOTS_DIR="$AI_REPORT_DIR/screenshots"
     mkdir -p "$SCREENSHOTS_DIR"
     
-    # Capture screenshots using headless Chrome if available
-    if command -v google-chrome &> /dev/null || command -v chromium &> /dev/null; then
+    # Save URLs to file first
+    echo "$TEST_URLS" > "$AI_REPORT_DIR/tested-urls.txt"
+    
+    # Try different screenshot methods
+    SCREENSHOT_COUNT=0
+    
+    # Method 1: Try Playwright (if Node.js is available)
+    if command -v node &> /dev/null && [ -f "tools/capture-screenshots.js" ]; then
+        echo "   Capturing screenshots with Playwright..."
+        
+        # Run Playwright screenshot capture
+        node tools/capture-screenshots.js "$PLUGIN_NAME" "$WP_URL" "$TEST_USER" "$TEST_PASS" 2>&1 | while read line; do
+            echo "   $line"
+        done
+        
+        # Count captured screenshots
+        SCREENSHOT_COUNT=$(ls -1 "$SCREENSHOTS_DIR"/*.png 2>/dev/null | wc -l)
+        echo "   ✅ Captured $SCREENSHOT_COUNT screenshots with Playwright"
+    
+    # Method 2: Try Chrome/Chromium
+    elif command -v google-chrome &> /dev/null || command -v chromium &> /dev/null; then
         CHROME_CMD=$(command -v google-chrome || command -v chromium)
         
-        echo "   Capturing screenshots..."
-        SCREENSHOT_COUNT=0
-        
-        # Save URLs to file
-        echo "$TEST_URLS" > "$AI_REPORT_DIR/tested-urls.txt"
+        echo "   Capturing screenshots with Chrome..."
         
         # Capture each URL
         while IFS= read -r url; do
@@ -1715,6 +1762,66 @@ $WP_URL/wp-admin/edit.php?post_type=$cpt_name"
         done <<< "$TEST_URLS"
         
         echo "   ✅ Captured $SCREENSHOT_COUNT screenshots"
+    
+    # Method 2: Try webkit2png (if installed via homebrew)
+    elif command -v webkit2png &> /dev/null; then
+        echo "   Capturing screenshots with webkit2png..."
+        
+        while IFS= read -r url; do
+            [ -z "$url" ] && continue
+            SCREENSHOT_COUNT=$((SCREENSHOT_COUNT + 1))
+            SAFE_NAME=$(echo "$url" | sed 's/[^a-zA-Z0-9]/_/g')
+            
+            echo "   📸 Capturing: $url"
+            webkit2png -F -o "${SAFE_NAME}" "$url" 2>/dev/null || true
+            mv "${SAFE_NAME}-full.png" "$SCREENSHOTS_DIR/${SAFE_NAME}.png" 2>/dev/null || true
+        done <<< "$TEST_URLS"
+        
+        echo "   ✅ Captured $SCREENSHOT_COUNT screenshots"
+    
+    # Method 3: Create a script for manual screenshot instructions
+    else
+        echo "   ⚠️ No automated screenshot tool found."
+        echo "   Creating manual screenshot guide..."
+        
+        cat > "$SCREENSHOTS_DIR/SCREENSHOT-GUIDE.md" << 'EOF'
+# 📸 Manual Screenshot Guide
+
+Since automated screenshot tools aren't available, please capture these pages manually:
+
+## How to Take Screenshots on Mac:
+1. Open each URL below in your browser
+2. Press **Cmd + Shift + 5** to open screenshot tool
+3. Select "Capture Entire Page" or drag to select area
+4. Save to this folder: `screenshots/`
+
+## URLs to Capture:
+EOF
+        
+        while IFS= read -r url; do
+            [ -z "$url" ] && continue
+            echo "- [ ] $url" >> "$SCREENSHOTS_DIR/SCREENSHOT-GUIDE.md"
+        done <<< "$TEST_URLS"
+        
+        cat >> "$SCREENSHOTS_DIR/SCREENSHOT-GUIDE.md" << 'EOF'
+
+## Naming Convention:
+Name your screenshots based on the page type:
+- `homepage.png` - Main site
+- `admin-dashboard.png` - WP Admin
+- `forum-list.png` - Forums page
+- `topic-view.png` - Single topic
+- `settings.png` - Plugin settings
+
+## What to Look For:
+- Mobile responsiveness issues
+- Broken layouts
+- Missing styles
+- JavaScript errors (check console)
+- Slow loading elements
+EOF
+        
+        echo "   📋 Manual screenshot guide created at: $SCREENSHOTS_DIR/SCREENSHOT-GUIDE.md"
         
         # Generate visual analysis report
         cat > "$AI_REPORT_DIR/VISUAL-ANALYSIS.md" << 'EOF'
