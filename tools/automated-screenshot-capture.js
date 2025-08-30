@@ -13,8 +13,11 @@ async function captureAutomatedScreenshots() {
     const args = process.argv.slice(2);
     const pluginName = args[0] || 'bbpress';
     const siteUrl = args[1] || 'http://wptesting.local';
-    const username = args[2] || 'ai-tester';
+    const username = args[2] || 'admin';
     const password = args[3] || 'Test@2024!';
+    
+    // Check if we should use auto-login
+    const useAutoLogin = process.env.USE_AUTO_LOGIN === 'true' || args.includes('--auto-login');
     
     // Setup directories
     const scanDir = path.join(__dirname, '..', '..', 'wp-content', 'uploads', 'wbcom-scan', pluginName);
@@ -70,17 +73,43 @@ async function captureAutomatedScreenshots() {
     
     try {
         // Login to WordPress
-        console.log('   🔐 Logging into WordPress...');
-        if (isInteractive) {
-            console.log('   👀 Watch the login process...');
+        if (useAutoLogin) {
+            console.log('   🔐 Generating auto-login URL...');
+            
+            // Generate auto-login URL using PHP script
+            const { execSync } = require('child_process');
+            const autoLoginUrl = execSync(
+                `cd "${path.join(__dirname, '..')}" && php tools/create-auto-login.php ${username} 30`,
+                { encoding: 'utf8' }
+            ).trim().split('\n').pop();
+            
+            if (autoLoginUrl && autoLoginUrl.includes('auto_login')) {
+                console.log('   ✅ Auto-login URL generated');
+                console.log('   🚀 Logging in automatically...');
+                await page.goto(autoLoginUrl);
+                await page.waitForURL('**/wp-admin/**', { timeout: 10000 });
+                console.log('   ✅ Logged in successfully!');
+            } else {
+                console.log('   ⚠️ Could not generate auto-login URL, falling back to manual login');
+                await manualLogin();
+            }
+        } else {
+            await manualLogin();
         }
-        await page.goto(`${siteUrl}/wp-login.php`);
-        await page.fill('#user_login', username);
-        await page.fill('#user_pass', password);
-        await page.click('#wp-submit');
-        await page.waitForURL('**/wp-admin/**', { timeout: 10000 }).catch(() => {
-            console.log('   ⚠️ Login might have failed, continuing anyway...');
-        });
+        
+        async function manualLogin() {
+            console.log('   🔐 Logging into WordPress...');
+            if (isInteractive) {
+                console.log('   👀 Watch the login process...');
+            }
+            await page.goto(`${siteUrl}/wp-login.php`);
+            await page.fill('#user_login', username);
+            await page.fill('#user_pass', password);
+            await page.click('#wp-submit');
+            await page.waitForURL('**/wp-admin/**', { timeout: 10000 }).catch(() => {
+                console.log('   ⚠️ Login might have failed, continuing anyway...');
+            });
+        }
         
         // Use AI-generated URLs if available
         if (urlPlan && urlPlan.urls) {
