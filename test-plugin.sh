@@ -16,7 +16,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Configuration
-INTERACTIVE_MODE=${INTERACTIVE:-true}
+INTERACTIVE_MODE=${INTERACTIVE:-false}
 TIMEOUT_LONG=300  # 5 minutes for long operations
 TIMEOUT_SHORT=60  # 1 minute for quick operations
 BATCH_SIZE=100    # Process files in batches for large plugins
@@ -118,6 +118,10 @@ if [ -z "$PLUGIN_NAME" ]; then
     echo "Usage: ./test-plugin.sh <plugin-name> [test-type]"
     echo "Test types: full (default), quick, security, performance, ai"
     echo "Example: ./test-plugin.sh health-check"
+    echo ""
+    echo "Options:"
+    echo "  INTERACTIVE=true ./test-plugin.sh plugin-name  # Enable interactive mode with prompts"
+    echo "  Default: Runs all phases automatically without prompts"
     exit 1
 fi
 
@@ -500,8 +504,29 @@ echo -e "${BLUE}   🤖 AI-Driven Test Data Generation${NC}"
 echo "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Generate intelligent test data plan based on AI analysis
-if [ -f "tools/ai/test-data-generator.mjs" ]; then
-    echo "   📊 Analyzing plugin features for test data generation..."
+if [ -f "tools/ai/dynamic-test-data-generator.mjs" ]; then
+    echo "   📊 Dynamically analyzing plugin patterns for test data generation..."
+    
+    # Run the dynamic AI test data generator
+    node tools/ai/dynamic-test-data-generator.mjs "$PLUGIN_NAME" 2>&1 | while read line; do
+        echo "      $line"
+    done
+    
+    # Check if test data plan was generated
+    if [ -f "$AI_REPORT_DIR/dynamic-test-data-plan.json" ]; then
+        TEST_DATA_COUNT=$(grep -c '"type"' "$AI_REPORT_DIR/dynamic-test-data-plan.json" || echo 0)
+        echo "   ✅ Generated dynamic test data plan with $TEST_DATA_COUNT scenarios"
+        
+        # Check if PHP script was generated
+        if [ -f "$AI_REPORT_DIR/create-test-data.php" ]; then
+            echo "   ✅ PHP test data script generated"
+            echo "   📝 Test data script saved to: $AI_REPORT_DIR/create-test-data.php"
+        fi
+    else
+        echo "   ⚠️  Could not generate test data plan"
+    fi
+elif [ -f "tools/ai/test-data-generator.mjs" ]; then
+    echo "   📊 Analyzing plugin features for test data generation (fallback)..."
     
     # Run the AI test data generator
     TEST_DATA_PLAN=$(node tools/ai/test-data-generator.mjs "$PLUGIN_NAME" 2>/dev/null || echo "{}")
@@ -2391,8 +2416,16 @@ $WP_URL/wp-admin/$admin_page"
     echo "   Executing AI-generated test data plan..."
     
     # Check if test data plan exists from Phase 3
-    TEST_DATA_PLAN_FILE="$AI_REPORT_DIR/test-data-plan.json"
-    TEST_DATA_SCRIPT="$AI_REPORT_DIR/generate-test-data.php"
+    TEST_DATA_PLAN_FILE="$AI_REPORT_DIR/dynamic-test-data-plan.json"
+    TEST_DATA_SCRIPT="$AI_REPORT_DIR/create-test-data.php"
+    
+    # Fallback to old file names if dynamic ones don't exist
+    if [ ! -f "$TEST_DATA_PLAN_FILE" ]; then
+        TEST_DATA_PLAN_FILE="$AI_REPORT_DIR/test-data-plan.json"
+    fi
+    if [ ! -f "$TEST_DATA_SCRIPT" ]; then
+        TEST_DATA_SCRIPT="$AI_REPORT_DIR/generate-test-data.php"
+    fi
     
     if [ -f "$TEST_DATA_SCRIPT" ]; then
         echo "   🚀 Running AI-generated test data script..."
