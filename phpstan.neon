@@ -1,0 +1,9 @@
+parameters:
+    level: 5
+    paths:
+        - %currentWorkingDirectory%/../wp-content/plugins
+    scanDirectories:
+        - %currentWorkingDirectory%/../wp-includes
+    bootstrapFiles:
+        - %currentWorkingDirectory%/../wp-load.php
+    treatPhpDocTypesAsCertain: false
