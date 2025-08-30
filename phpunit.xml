@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="tests/phpunit/bootstrap-wordpress.php"
+         bootstrap="tests/framework/bootstrap-wordpress.php"
          colors="true"
          verbose="true">
     <testsuites>
         <testsuite name="unit">
-            <directory>tests/phpunit/Unit</directory>
+            <directory>tests/functionality</directory>
         </testsuite>
         <testsuite name="integration">
-            <directory>tests/phpunit/Integration</directory>
+            <directory>plugins/*/tests/integration</directory>
         </testsuite>
         <testsuite name="functional">
-            <directory>tests/phpunit/Functional</directory>
+            <directory>plugins/*/tests/functional</directory>
         </testsuite>
         <testsuite name="security">
-            <directory>tests/phpunit/Security</directory>
+            <directory>plugins/*/tests/security</directory>
         </testsuite>
     </testsuites>
     

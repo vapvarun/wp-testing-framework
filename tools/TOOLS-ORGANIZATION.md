@@ -15,6 +15,17 @@
 - `claude-analyze.mjs` - ⚠️ OPTIONAL (specific to Claude AI)
 - `simple-plan-plus.mjs` - ⚠️ OUTDATED (replaced by better tools)
 
+### 📁 Documentation Tools (`/tools/documentation/`) - ✅ ACTIVE
+**Purpose**: Professional documentation validation and enhancement as script assistants
+- `validate-documentation.sh` - ✅ KEEP (comprehensive quality validation with scoring)
+- `enhance-documentation.sh` - ✅ KEEP (automatic documentation enhancement with real code)
+**Integration**: Integrated into main test-plugin.sh in Phase 7 as helper tools
+**Features**:
+- Quality scoring system with multiple metrics
+- Real code extraction and enhancement
+- Professional documentation standards validation
+- Automatic enhancement when quality scores are low
+
 ### 📁 E2E Tools (`/tools/e2e/`)
 **Purpose**: End-to-end testing with Playwright
 - ✅ KEEP ALL (Playwright config and tests)
@@ -77,9 +88,13 @@ tools/
 │   ├── scenario-test-executor.mjs
 │   ├── universal-test-generator.mjs
 │   └── claude-analyze.mjs
+├── documentation/         # Professional documentation tools
+│   ├── validate-documentation.sh
+│   └── enhance-documentation.sh
 ├── e2e/                   # Playwright E2E tests
 ├── utilities/             # Empty (moved to archive)
 ├── scanners/              # Empty (removed outdated)
+├── php-ast-analyzer.js    # PHP AST analyzer
 ├── universal-workflow.mjs # Main orchestrator
 ├── test-coverage-report.php
 ├── test-coverage-report.sh
@@ -94,10 +109,12 @@ tools/
 ### Essential Tools (Keep)
 1. **universal-workflow.mjs** - Orchestrates entire test workflow
 2. **AI tools** - Analyze code and generate tests
-3. **Coverage reports** - Track test coverage
-4. **Security scanner** - Find vulnerabilities
-5. **Performance profiler** - Test performance
-6. **Demo data generator** - Create test data
+3. **Documentation tools** - Professional validation and enhancement
+4. **PHP AST analyzer** - Accurate PHP code analysis
+5. **Coverage reports** - Track test coverage
+6. **Security scanner** - Find vulnerabilities
+7. **Performance profiler** - Test performance
+8. **Demo data generator** - Create test data
 
 ### Removed/Archived
 1. **Shell scripts** - Replaced by npm commands
@@ -107,14 +124,21 @@ tools/
 ## Usage After Cleanup
 
 ```bash
-# Main workflow
-npm run universal:buddypress
+# Main workflow (includes all tools integrated)
+./test-plugin.sh bbpress
 
-# AI analysis
+# Individual AI analysis
 node tools/ai/functionality-analyzer.mjs
 node tools/ai/customer-value-analyzer.mjs
 
-# Reports
+# PHP AST analysis
+node tools/php-ast-analyzer.js wp-content/plugins/plugin-name
+
+# Documentation quality tools
+bash tools/documentation/validate-documentation.sh plugin-name
+bash tools/documentation/enhance-documentation.sh plugin-name
+
+# Individual reports
 php tools/test-coverage-report.php
 php tools/security-scanner.php
 

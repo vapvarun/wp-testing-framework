@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # WP Testing Framework - Complete AI-Driven Plugin Tester
-# Version: 8.0.0 - Enhanced with AST analysis, interactive mode, and optimized phase order
+# Integrates all scanning, analysis, and testing in one command
 # Repository: https://github.com/vapvarun/wp-testing-framework/
 
 set -e
@@ -11,113 +11,17 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
 NC='\033[0m'
-
-# Configuration
-INTERACTIVE_MODE=${INTERACTIVE:-true}
-TIMEOUT_LONG=300  # 5 minutes for long operations
-TIMEOUT_SHORT=60  # 1 minute for quick operations
-BATCH_SIZE=100    # Process files in batches for large plugins
-USE_AST=${USE_AST:-true}  # Enable AST analysis by default
 
 # Get plugin name from argument
 PLUGIN_NAME=$1
 TEST_TYPE=${2:-full}
-SKIP_INTERACTIVE=${3:-false}
-
-# Function to show progress spinner
-show_progress() {
-    local pid=$1
-    local task=$2
-    local spin='-\|/'
-    local i=0
-    
-    while kill -0 $pid 2>/dev/null; do
-        i=$(( (i+1) %4 ))
-        printf "\r${CYAN}⏳ %s... %c${NC}" "$task" "${spin:$i:1}"
-        sleep 0.1
-    done
-    printf "\r${GREEN}✅ %s complete    ${NC}\n" "$task"
-}
-
-# Function for interactive checkpoint
-checkpoint() {
-    local phase=$1
-    local description=$2
-    
-    if [ "$INTERACTIVE_MODE" = "true" ] && [ "$SKIP_INTERACTIVE" != "true" ]; then
-        echo ""
-        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${MAGENTA}🔄 Checkpoint: $phase${NC}"
-        echo -e "${YELLOW}$description${NC}"
-        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo ""
-        echo "Options:"
-        echo "  [Enter] Continue to next phase"
-        echo "  [s]     Skip this phase"
-        echo "  [v]     View current results"
-        echo "  [q]     Quit analysis"
-        echo ""
-        read -p "Your choice: " -n 1 -r choice
-        echo ""
-        
-        case "$choice" in
-            s|S)
-                echo -e "${YELLOW}⏭️  Skipping $phase${NC}"
-                return 1
-                ;;
-            v|V)
-                echo -e "${BLUE}📊 Current results in: $SCAN_DIR${NC}"
-                ls -la "$SCAN_DIR" 2>/dev/null | head -10
-                read -p "Press Enter to continue..."
-                return 0
-                ;;
-            q|Q)
-                echo -e "${RED}❌ Analysis cancelled by user${NC}"
-                exit 0
-                ;;
-            *)
-                return 0
-                ;;
-        esac
-    fi
-    return 0
-}
-
-# Function to handle timeouts
-run_with_timeout() {
-    local timeout=$1
-    shift
-    local command="$@"
-    
-    # Use gtimeout on macOS (installed via brew install coreutils)
-    if command -v gtimeout >/dev/null 2>&1; then
-        gtimeout --preserve-status $timeout bash -c "$command" &
-    elif command -v timeout >/dev/null 2>&1; then
-        timeout --preserve-status $timeout bash -c "$command" &
-    else
-        # Fallback: run without timeout
-        bash -c "$command" &
-    fi
-    
-    local pid=$!
-    wait $pid
-    local status=$?
-    
-    if [ $status -eq 124 ]; then
-        echo -e "${YELLOW}⚠️  Operation timed out after ${timeout}s${NC}"
-        return 124
-    fi
-    return $status
-}
 
 if [ -z "$PLUGIN_NAME" ]; then
     echo -e "${RED}❌ Please specify a plugin name${NC}"
     echo "Usage: ./test-plugin.sh <plugin-name> [test-type]"
     echo "Test types: full (default), quick, security, performance, ai"
-    echo "Example: ./test-plugin.sh health-check"
+    echo "Example: ./test-plugin.sh bbpress"
     exit 1
 fi
 
@@ -202,12 +106,6 @@ echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}🤖 PHASE 3: AI-Driven Code Analysis${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-# Interactive checkpoint
-if ! checkpoint "Phase 3: AI-Driven Code Analysis" "This phase performs comprehensive code analysis using grep baseline, professional PHP tools (PHPStan, PHPCS, Psalm), and AST parsing for maximum accuracy. Large plugins may take 5-10 minutes."; then
-    echo -e "${YELLOW}⏭️  Skipping Phase 3 - AI Analysis${NC}"
-    echo "You can run this separately later with: npm run analyze:functionality"
-else
 
 AI_REPORT_DIR="$PLAN_DIR/ai-analysis"
 SCAN_EXTRACT_DIR="$SCAN_DIR/grep-extracts"
@@ -294,47 +192,6 @@ if [ -d "$PLUGIN_PATH" ]; then
     PHP_FILES=$(find $PLUGIN_PATH -name "*.php" 2>/dev/null | wc -l | tr -d ' ')
     JS_FILES=$(find $PLUGIN_PATH -name "*.js" 2>/dev/null | wc -l | tr -d ' ')
     CSS_FILES=$(find $PLUGIN_PATH -name "*.css" 2>/dev/null | wc -l | tr -d ' ')
-    
-    echo "   📁 Found: $PHP_FILES PHP, $JS_FILES JS, $CSS_FILES CSS files"
-    
-    # WordPress-Specific AST Analysis Phase
-    AST_OUTPUT="$SCAN_DIR/wordpress-ast-analysis.json"
-    if [ "$USE_AST" = "true" ] && [ -f "tools/wordpress-ast-analyzer.js" ]; then
-        echo "   🌳 Running WordPress-Specific AST Analysis..."
-        
-        # Check if php-parser is installed
-        if ! node -e "require('php-parser')" 2>/dev/null; then
-            echo "   📦 Installing php-parser for AST analysis..."
-            npm install php-parser --silent || true
-        fi
-        
-        # Run WordPress AST analysis with timeout for large plugins
-        if run_with_timeout $TIMEOUT_LONG "node tools/wordpress-ast-analyzer.js '$PLUGIN_PATH' '$AST_OUTPUT'"; then
-            echo "   ✅ AST analysis completed successfully"
-            
-            # Extract key metrics from AST for intelligent test data generation
-            if [ -f "$AST_OUTPUT" ]; then
-                # Parse AST results for test data planning
-                HOOK_COUNT=$(node -e "try { const data = require('$AST_OUTPUT'); console.log(data.total.hooks || 0); } catch(e) { console.log(0); }")
-                SHORTCODE_COUNT=$(node -e "try { const data = require('$AST_OUTPUT'); console.log(data.total.shortcodes || 0); } catch(e) { console.log(0); }")
-                AJAX_COUNT=$(node -e "try { const data = require('$AST_OUTPUT'); console.log(data.total.ajax_handlers || 0); } catch(e) { console.log(0); }")
-                REST_COUNT=$(node -e "try { const data = require('$AST_OUTPUT'); console.log(data.total.rest_endpoints || 0); } catch(e) { console.log(0); }")
-                FUNC_COUNT=$(node -e "try { const data = require('$AST_OUTPUT'); console.log(data.total.functions || 0); } catch(e) { console.log(0); }")
-                CLASS_COUNT=$(node -e "try { const data = require('$AST_OUTPUT'); console.log(data.total.classes || 0); } catch(e) { console.log(0); }")
-                
-                echo "   📊 AST Detected: $FUNC_COUNT functions, $CLASS_COUNT classes, $HOOK_COUNT hooks, $SHORTCODE_COUNT shortcodes"
-                
-                # Copy AST analysis to AI directory for processing
-                cp "$AST_OUTPUT" "$AI_REPORT_DIR/ast-analysis.json"
-            fi
-        else
-            echo "   ⚠️  AST analysis timed out or failed, falling back to grep analysis"
-            USE_AST=false
-        fi
-    else
-        echo "   📝 Using grep-based analysis (AST disabled or tools missing)"
-        USE_AST=false
-    fi
     
     if [ "$USE_PROFESSIONAL_TOOLS" = true ] && [ "$PHPSTAN_AVAILABLE" = true ]; then
         # Use PHPStan for accurate analysis
@@ -445,7 +302,7 @@ EOF
     echo "# REST Endpoints in $PLUGIN_NAME" > $REST_FILE
     grep -r "register_rest_route\|rest_api_init" $PLUGIN_PATH --include="*.php" 2>/dev/null | \
         sed "s|$PLUGIN_PATH/||g" >> $REST_FILE || true
-    REST_COUNT=$(grep -c "rest_" $REST_FILE 2>/dev/null | head -1 || echo "0")
+    REST_COUNT=$(grep -c "rest_" $REST_FILE 2>/dev/null || echo "0")
     
     # Extract shortcodes
     echo "   Extracting shortcodes..."
@@ -493,44 +350,6 @@ if [ -d "$PLUGIN_PATH/screenshots" ] || [ -d "$PLUGIN_PATH/media" ]; then
 fi
 
 # ============================================
-# AI-DRIVEN TEST DATA GENERATION
-# ============================================
-echo ""
-echo -e "${BLUE}   🤖 AI-Driven Test Data Generation${NC}"
-echo "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-# Generate intelligent test data plan based on AI analysis
-if [ -f "tools/ai/test-data-generator.mjs" ]; then
-    echo "   📊 Analyzing plugin features for test data generation..."
-    
-    # Run the AI test data generator
-    TEST_DATA_PLAN=$(node tools/ai/test-data-generator.mjs "$PLUGIN_NAME" 2>/dev/null || echo "{}")
-    
-    # Save test data plan
-    if [ ! -z "$TEST_DATA_PLAN" ] && [ "$TEST_DATA_PLAN" != "{}" ]; then
-        echo "$TEST_DATA_PLAN" > "$AI_REPORT_DIR/test-data-plan.json"
-        
-        # Extract summary
-        TEST_DATA_COUNT=$(echo "$TEST_DATA_PLAN" | grep -c '"type"' || echo 0)
-        echo "   ✅ Generated test data plan with $TEST_DATA_COUNT items"
-        
-        # Check if PHP script was generated
-        if [ -f "$AI_REPORT_DIR/generate-test-data.php" ]; then
-            echo "   ✅ PHP test data script generated"
-            echo "   📝 Test data script saved to: $AI_REPORT_DIR/generate-test-data.php"
-        fi
-    else
-        echo "   ⚠️  Could not generate AI test data plan"
-    fi
-else
-    echo "   ⚠️  Test data generator not found, skipping intelligent test data generation"
-fi
-
-echo -e "${GREEN}✅ AI analysis and test data planning complete${NC}"
-
-fi  # End of Phase 3 checkpoint
-
-# ============================================
 # PHASE 4: SECURITY ANALYSIS
 # ============================================
 
@@ -538,11 +357,6 @@ echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}🔒 PHASE 4: Security Analysis${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-# Interactive checkpoint
-if ! checkpoint "Phase 4: Security Analysis" "Comprehensive security scanning using professional tools and vulnerability pattern detection. This phase checks for SQL injection, XSS, CSRF, and other security vulnerabilities."; then
-    echo -e "${YELLOW}⏭️  Skipping Phase 4 - Security Analysis${NC}"
-else
 
 SECURITY_FILE="$AI_REPORT_DIR/security-analysis.txt"
 SECURITY_REPORT_FILE="$SCAN_DIR/raw-outputs/security/security-$TIMESTAMP.txt"
@@ -680,8 +494,6 @@ if [ -d "$PLUGIN_PATH" ]; then
     
     echo -e "${GREEN}✅ Security analysis complete${NC}"
 fi
-
-fi  # End of Phase 4 checkpoint
 
 # ============================================
 # PHASE 5: PERFORMANCE ANALYSIS
@@ -1065,19 +877,14 @@ validate_doc_quality() {
     local doc_type=$3
     
     if [ -f "$doc_file" ]; then
-        local line_count=$(wc -l < "$doc_file" 2>/dev/null | tr -d ' ' | head -1)
-        local code_blocks=$(grep -c '```' "$doc_file" 2>/dev/null | head -1 || echo 0)
-        local specific_refs=$(grep -cE "line [0-9]+|:[0-9]+|\\\$[0-9]+|[0-9]+ hours" "$doc_file" 2>/dev/null | head -1 || echo 0)
-        
-        # Ensure variables are integers
-        line_count=${line_count:-0}
-        code_blocks=${code_blocks:-0}
-        specific_refs=${specific_refs:-0}
+        local line_count=$(wc -l < "$doc_file")
+        local code_blocks=$(grep -c '```' "$doc_file" || echo 0)
+        local specific_refs=$(grep -cE "line [0-9]+|:[0-9]+|\$[0-9]+|[0-9]+ hours" "$doc_file" || echo 0)
         
         local quality_score=0
-        [ "$line_count" -ge "$min_lines" ] 2>/dev/null && quality_score=$((quality_score + 30))
-        [ "$code_blocks" -ge 10 ] 2>/dev/null && quality_score=$((quality_score + 35))
-        [ "$specific_refs" -ge 15 ] 2>/dev/null && quality_score=$((quality_score + 35))
+        [ $line_count -ge $min_lines ] && quality_score=$((quality_score + 30))
+        [ $code_blocks -ge 10 ] && quality_score=$((quality_score + 35))
+        [ $specific_refs -ge 15 ] && quality_score=$((quality_score + 35))
         
         if [ $quality_score -lt 70 ]; then
             echo -e "${YELLOW}   ⚠️  $doc_type quality low ($quality_score/100). Enhancing...${NC}"
@@ -1164,47 +971,13 @@ if [ "$XSS_VULNERABLE" -gt 0 ]; then
     echo "- **Solution:** Use esc_html(), esc_attr(), wp_kses_post()" >> "$USER_GUIDE"
 fi
 
-# Professional documentation enhancement using helper tools
-echo "   📝 Using professional documentation enhancement tools..."
-
-# First, enhance documentation with real content using helper script
-if [ -f "tools/documentation/enhance-documentation.sh" ]; then
-    echo "   🚀 Running professional documentation enhancer..."
-    # Set plugin context for the enhancer
-    export PLUGIN_NAME="$PLUGIN_NAME"
-    export SCAN_DIR="$SCAN_DIR"
-    export PLAN_DIR="$PLAN_DIR"
-    
-    if bash tools/documentation/enhance-documentation.sh "$PLUGIN_NAME" 2>/dev/null; then
-        echo "   ✅ Professional documentation enhancement completed"
-    else
-        echo "   ⚠️  Professional enhancer had issues, using basic enhancement..."
-        
-        # Fallback: basic enhancement
-        echo "" >> "$USER_GUIDE"
-        echo "## Additional Analysis Details" >> "$USER_GUIDE"
-        echo "" >> "$USER_GUIDE"
-        echo "### Security Findings (${SECURITY_SCORE:-0}/100)" >> "$USER_GUIDE"
-        if [ -f "$SECURITY_FILE" ]; then
-            echo "\`\`\`" >> "$USER_GUIDE"
-            head -30 "$SECURITY_FILE" >> "$USER_GUIDE"
-            echo "\`\`\`" >> "$USER_GUIDE"
-        fi
-        echo "" >> "$USER_GUIDE"
-        echo "### Performance Metrics" >> "$USER_GUIDE"
-        echo "- Files analyzed: $PHP_FILES PHP, $JS_FILES JS, $CSS_FILES CSS" >> "$USER_GUIDE"
-        echo "- Total hooks: $HOOK_COUNT" >> "$USER_GUIDE"
-        echo "- Database operations: $DB_COUNT" >> "$USER_GUIDE"
-        echo "- Large files: ${LARGE_FILES:-0} (>100KB)" >> "$USER_GUIDE"
-    fi
-else
-    echo "   ⚠️  Professional enhancer not found, using basic enhancement..."
-    
-    # Fallback: basic enhancement
+# Validate and enhance if needed
+if ! validate_doc_quality "$USER_GUIDE" 500 "USER-GUIDE"; then
+    # Enhance with more content from scan results
     echo "" >> "$USER_GUIDE"
     echo "## Additional Analysis Details" >> "$USER_GUIDE"
     echo "" >> "$USER_GUIDE"
-    echo "### Security Findings (${SECURITY_SCORE:-0}/100)" >> "$USER_GUIDE"
+    echo "### Security Findings (${SECURITY_SCORE}/100)" >> "$USER_GUIDE"
     if [ -f "$SECURITY_FILE" ]; then
         echo "\`\`\`" >> "$USER_GUIDE"
         head -30 "$SECURITY_FILE" >> "$USER_GUIDE"
@@ -1215,7 +988,10 @@ else
     echo "- Files analyzed: $PHP_FILES PHP, $JS_FILES JS, $CSS_FILES CSS" >> "$USER_GUIDE"
     echo "- Total hooks: $HOOK_COUNT" >> "$USER_GUIDE"
     echo "- Database operations: $DB_COUNT" >> "$USER_GUIDE"
-    echo "- Large files: ${LARGE_FILES:-0} (>100KB)" >> "$USER_GUIDE"
+    echo "- Large files: $LARGE_FILES (>100KB)" >> "$USER_GUIDE"
+    
+    # Re-validate
+    validate_doc_quality "$USER_GUIDE" 500 "USER-GUIDE"
 fi
 
 # 2. Generate Issues & Fixes Report
@@ -1278,12 +1054,8 @@ if ! validate_doc_quality "$ISSUES_REPORT" 400 "ISSUES-FIXES"; then
         echo "  - Cost: \$900" >> "$ISSUES_REPORT"
     fi
     
-    # Final validation (don't loop if it fails)  
-    if validate_doc_quality "$ISSUES_REPORT" 400 "ISSUES-FIXES"; then
-        echo "   ✅ ISSUES-FIXES quality improved"
-    else
-        echo "   ⚠️  ISSUES-FIXES quality acceptable for basic documentation"
-    fi
+    # Re-validate
+    validate_doc_quality "$ISSUES_REPORT" 400 "ISSUES-FIXES"
 fi
 
 # 3. Generate Development Plan
@@ -1353,12 +1125,8 @@ if ! validate_doc_quality "$DEV_PLAN" 600 "DEVELOPMENT-PLAN"; then
     echo "- QA Engineer: $(($FUNC_COUNT / 10)) hours" >> "$DEV_PLAN"
     echo "- Total Budget: \$$((($SQL_DIRECT * 300) + ($XSS_VULNERABLE * 150) + 5000))" >> "$DEV_PLAN"
     
-    # Final validation (don't loop if it fails)
-    if validate_doc_quality "$DEV_PLAN" 600 "DEVELOPMENT-PLAN"; then
-        echo "   ✅ DEVELOPMENT-PLAN quality improved"
-    else
-        echo "   ⚠️  DEVELOPMENT-PLAN quality acceptable for basic documentation"
-    fi
+    # Re-validate
+    validate_doc_quality "$DEV_PLAN" 600 "DEVELOPMENT-PLAN"
 fi
 
 # Copy enhanced documentation to safekeeping
@@ -1370,49 +1138,11 @@ cp "$DEV_PLAN" "$FRAMEWORK_SAFEKEEP/documentation/"
 echo -e "${GREEN}✅ High-quality documentation generated from actual scan data${NC}"
 
 # ============================================
-# PROFESSIONAL DOCUMENTATION QUALITY VALIDATION
-# ============================================
-echo ""
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}📊 Professional Documentation Quality Validation${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-# Run professional documentation validator
-if [ -f "tools/documentation/validate-documentation.sh" ]; then
-    echo "   🔍 Running comprehensive documentation quality analysis..."
-    # Set environment for validator
-    export PLUGIN_NAME="$PLUGIN_NAME"
-    
-    # Run validator and capture result without stopping the process
-    VALIDATOR_OUTPUT=$(bash tools/documentation/validate-documentation.sh "$PLUGIN_NAME" 2>&1 || echo "VALIDATION_FAILED")
-    
-    if echo "$VALIDATOR_OUTPUT" | grep -q "EXCELLENT"; then
-        echo "   ✅ Documentation quality: EXCELLENT - Professional standards met"
-        DOC_QUALITY_STATUS="EXCELLENT"
-    elif echo "$VALIDATOR_OUTPUT" | grep -q "GOOD"; then
-        echo "   ✅ Documentation quality: GOOD - Solid with minor improvements needed"
-        DOC_QUALITY_STATUS="GOOD"
-    elif echo "$VALIDATOR_OUTPUT" | grep -q "ACCEPTABLE"; then
-        echo "   ⚠️  Documentation quality: ACCEPTABLE - Needs significant improvements"
-        DOC_QUALITY_STATUS="ACCEPTABLE"
-    else
-        echo "   ⚠️  Documentation validated - Quality check completed"
-        DOC_QUALITY_STATUS="VALIDATED"
-    fi
-    
-    # Save validator report for reference
-    echo "$VALIDATOR_OUTPUT" > "$FRAMEWORK_SAFEKEEP/documentation/VALIDATION-REPORT.txt"
-else
-    echo "   ⚠️  Professional validator not available, using basic quality check"
-    DOC_QUALITY_STATUS="BASIC"
-fi
-
-# ============================================
 # DOCUMENTATION QUALITY REPORT
 # ============================================
 echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}📋 Documentation Quality Summary${NC}"
+echo -e "${BLUE}📊 Documentation Quality Report${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 # Generate quality report
@@ -1813,8 +1543,25 @@ echo "   Analyzing plugin for user-friendly documentation..."
 USAGE_GUIDE="$AI_REPORT_DIR/USER-GUIDE.md"
 ENHANCEMENTS="$AI_REPORT_DIR/USER-ENHANCEMENTS.md"
 
-# Plugin type is now determined by AI analysis, not name patterns
-# The test-data-generator.mjs has already analyzed the plugin and created a test data plan
+# Determine plugin type for better context
+PLUGIN_TYPE="general"
+if echo "$PLUGIN_NAME" | grep -qi "forum\|community\|bbpress\|discussion"; then
+    PLUGIN_TYPE="forum"
+elif echo "$PLUGIN_NAME" | grep -qi "shop\|commerce\|store\|product\|payment"; then
+    PLUGIN_TYPE="ecommerce"
+elif echo "$PLUGIN_NAME" | grep -qi "seo\|search\|optimize\|yoast"; then
+    PLUGIN_TYPE="seo"
+elif echo "$PLUGIN_NAME" | grep -qi "form\|contact\|survey\|quiz"; then
+    PLUGIN_TYPE="forms"
+elif echo "$PLUGIN_NAME" | grep -qi "social\|share\|facebook\|twitter"; then
+    PLUGIN_TYPE="social"
+elif echo "$PLUGIN_NAME" | grep -qi "security\|firewall\|protect\|wordfence"; then
+    PLUGIN_TYPE="security"
+elif echo "$PLUGIN_NAME" | grep -qi "cache\|performance\|speed\|optimize"; then
+    PLUGIN_TYPE="performance"
+elif echo "$PLUGIN_NAME" | grep -qi "backup\|migrate\|clone\|duplicator"; then
+    PLUGIN_TYPE="backup"
+fi
 
 # Generate user-friendly usage guide
 echo "   Generating user-friendly guide..."
@@ -1830,36 +1577,60 @@ cat > $USAGE_GUIDE << EOF
 
 EOF
 
-# Add AI-analyzed plugin description based on actual features found
-cat >> $USAGE_GUIDE << EOF
-This plugin enhances your WordPress site with specialized functionality.
-Based on our AI analysis, it includes **$FUNC_COUNT functions** organized into **$CLASS_COUNT components**.
+# Add plugin-type specific description
+case $PLUGIN_TYPE in
+    "forum")
+        cat >> $USAGE_GUIDE << EOF
+This plugin adds **forum functionality** to your WordPress site, allowing your visitors to:
+- 💬 Start discussions and conversations
+- 👥 Build a community around your content
+- 🗣️ Share knowledge and get answers
+- 📱 Engage with other users
+- 🏆 Build reputation and credibility
 
 EOF
+        ;;
+    "ecommerce")
+        cat >> $USAGE_GUIDE << EOF
+This plugin transforms your WordPress site into an **online store**, enabling you to:
+- 🛍️ Sell products or services online
+- 💳 Accept payments securely
+- 📦 Manage inventory and shipping
+- 👤 Track customer orders
+- 📊 Monitor sales and revenue
 
-# Add discovered features from AI analysis
-if [ -f "$AI_REPORT_DIR/custom-post-types.txt" ] && [ -s "$AI_REPORT_DIR/custom-post-types.txt" ]; then
-    echo "### 📁 Custom Content Types" >> $USAGE_GUIDE
-    echo "The plugin adds these content types to your site:" >> $USAGE_GUIDE
-    echo "" >> $USAGE_GUIDE
-    while IFS=',' read -r name label; do
-        if [ ! -z "$name" ] && [ "$name" != "post" ] && [ "$name" != "page" ]; then
-            echo "- **$label**" >> $USAGE_GUIDE
-        fi
-    done < "$AI_REPORT_DIR/custom-post-types.txt"
-    echo "" >> $USAGE_GUIDE
-fi
+EOF
+        ;;
+    "seo")
+        cat >> $USAGE_GUIDE << EOF
+This plugin **improves your search engine rankings**, helping you:
+- 🔍 Get found on Google and other search engines
+- 📈 Increase organic traffic to your site
+- 🎯 Optimize content for target keywords
+- 📱 Improve mobile search visibility
+- ⚡ Speed up your site for better rankings
 
-# Add detected taxonomies
-if [ -f "$AI_REPORT_DIR/taxonomies.txt" ] && [ -s "$AI_REPORT_DIR/taxonomies.txt" ]; then
-    echo "### 🏷️ Organization Features" >> $USAGE_GUIDE
-    echo "Organize your content with these categories:" >> $USAGE_GUIDE
-    echo "" >> $USAGE_GUIDE
-    while IFS= read -r taxonomy; do
-        [ ! -z "$taxonomy" ] && echo "- $taxonomy" >> $USAGE_GUIDE
-    done < "$AI_REPORT_DIR/taxonomies.txt"
-    echo "" >> $USAGE_GUIDE
-fi
+EOF
+        ;;
+    "forms")
+        cat >> $USAGE_GUIDE << EOF
+This plugin lets you **create forms** for your website to:
+- 📝 Collect information from visitors
+- ✉️ Receive contact messages
+- 📋 Conduct surveys and polls
+- 🎯 Generate leads for your business
+- 📊 Gather customer feedback
+
+EOF
+        ;;
+    *)
+        cat >> $USAGE_GUIDE << EOF
+This plugin enhances your WordPress site with specialized functionality.
+Based on our analysis, it includes $FUNC_COUNT functions organized into $CLASS_COUNT components.
+
+EOF
+        ;;
+esac
 
 # User-friendly features section
 cat >> $USAGE_GUIDE << EOF
@@ -1898,7 +1669,7 @@ EOF
 fi
 
 # Analyze REST API endpoints
-if [ "${REST_COUNT:-0}" -gt 0 ]; then
+if [ "$REST_COUNT" -gt 0 ]; then
     cat >> $USAGE_GUIDE << EOF
 ### 🔗 Connect with Other Services
 This plugin can connect to **$REST_COUNT external services**:
@@ -1939,24 +1710,41 @@ cat >> $USAGE_GUIDE << EOF
 ### Step 3: Start Using It
 EOF
 
-# Add generic getting started steps
-cat >> $USAGE_GUIDE << EOF
-✅ Configure the plugin settings
-✅ Add your first content or features
-✅ Test the core functionality
-✅ Customize to match your needs
+# Add specific instructions based on plugin type
+case $PLUGIN_TYPE in
+    "forum")
+        cat >> $USAGE_GUIDE << EOF
+✅ Create your first forum category
+✅ Set up user permissions
+✅ Post your first topic
+✅ Invite users to participate
 EOF
-
-# Add specific steps if we detected custom post types
-if [ -f "$AI_REPORT_DIR/custom-post-types.txt" ] && [ -s "$AI_REPORT_DIR/custom-post-types.txt" ]; then
-    echo "" >> $USAGE_GUIDE
-    echo "### Content-Specific Steps:" >> $USAGE_GUIDE
-    while IFS=',' read -r name label; do
-        if [ ! -z "$name" ] && [ "$name" != "post" ] && [ "$name" != "page" ]; then
-            echo "✅ Create your first $label" >> $USAGE_GUIDE
-        fi
-    done < "$AI_REPORT_DIR/custom-post-types.txt"
-fi
+        ;;
+    "ecommerce")
+        cat >> $USAGE_GUIDE << EOF
+✅ Add your first product
+✅ Set up payment methods
+✅ Configure shipping options
+✅ Test a purchase
+EOF
+        ;;
+    "seo")
+        cat >> $USAGE_GUIDE << EOF
+✅ Enter your focus keywords
+✅ Optimize your page titles
+✅ Set up meta descriptions
+✅ Submit your sitemap
+EOF
+        ;;
+    *)
+        cat >> $USAGE_GUIDE << EOF
+✅ Configure basic settings
+✅ Add content or features
+✅ Test the functionality
+✅ Customize as needed
+EOF
+        ;;
+esac
 
 cat >> $USAGE_GUIDE << EOF
 
@@ -2058,7 +1846,7 @@ cat >> $ENHANCEMENTS << EOF
 EOF
 
 # Check for missing modern features
-if [ ${REST_COUNT:-0} -eq 0 ]; then
+if [ $REST_COUNT -eq 0 ]; then
     cat >> $ENHANCEMENTS << EOF
 ❌ **No Mobile App Support**
 - Your plugin can't connect to mobile apps yet
@@ -2067,7 +1855,7 @@ if [ ${REST_COUNT:-0} -eq 0 ]; then
 EOF
 fi
 
-if [ ${AJAX_COUNT:-0} -lt 5 ]; then
+if [ $AJAX_COUNT -lt 5 ]; then
     cat >> $ENHANCEMENTS << EOF
 📱 **Limited Real-Time Features** 
 - Only $AJAX_COUNT interactive features (modern plugins have 10+)
@@ -2091,36 +1879,49 @@ cat >> $ENHANCEMENTS << EOF
 ### 🚀 Features That Boost Engagement
 EOF
 
-# Suggest features based on AI analysis
-cat >> $ENHANCEMENTS << EOF
-Based on AI analysis of your plugin's architecture, consider adding:
+# Suggest features based on plugin type
+case $PLUGIN_TYPE in
+    "forum")
+        cat >> $ENHANCEMENTS << EOF
+Based on successful forum plugins, users love:
+- **Gamification:** Points and badges (increases engagement by 40%)
+- **Email Digests:** Weekly summaries (brings back 30% more users)
+- **Mobile App:** Dedicated app (2x more active users)
+- **AI Moderation:** Auto-detect spam (saves 5 hours/week)
+- **Social Login:** Login with Google/Facebook (50% more signups)
 EOF
-
-# Suggest features based on what we detected
-if [ ${AJAX_COUNT:-0} -lt 5 ]; then
-    echo "- **More Real-Time Features:** Add AJAX for instant updates (improves UX by 40%)" >> $ENHANCEMENTS
-fi
-
-if [ ${REST_COUNT:-0} -eq 0 ]; then
-    echo "- **REST API Support:** Enable mobile app connectivity (2x more reach)" >> $ENHANCEMENTS
-fi
-
-if [ ${SHORTCODE_COUNT:-0} -lt 3 ]; then
-    echo "- **More Shortcodes:** Make content embedding easier (saves users 70% setup time)" >> $ENHANCEMENTS
-fi
-
-if [ -f "$AI_REPORT_DIR/custom-post-types.txt" ] && [ -s "$AI_REPORT_DIR/custom-post-types.txt" ]; then
-    echo "- **Enhanced Content Management:** Add bulk operations for your custom post types" >> $ENHANCEMENTS
-fi
-
-# Universal improvements that work for any plugin
-cat >> $ENHANCEMENTS << EOF
-- **Dashboard Analytics:** See all metrics at a glance
-- **Import/Export:** Easy data migration and backup
-- **Email Notifications:** Keep users informed
-- **Automation Features:** Set it and forget it
-- **Performance Caching:** Make everything faster
+        ;;
+    "ecommerce")
+        cat >> $ENHANCEMENTS << EOF
+Based on successful e-commerce plugins, users love:
+- **Abandoned Cart Recovery:** (recovers 30% of lost sales)
+- **One-Click Upsells:** (increases revenue by 20%)
+- **Product Reviews:** (boosts conversions by 15%)
+- **Wishlist Feature:** (increases return visits by 40%)
+- **Multi-Currency:** (opens international markets)
 EOF
+        ;;
+    "seo")
+        cat >> $ENHANCEMENTS << EOF
+Based on successful SEO plugins, users love:
+- **AI Content Suggestions:** (improves rankings by 25%)
+- **Competitor Analysis:** (identify opportunities)
+- **Automated Schema:** (better search appearance)
+- **Link Suggestions:** (improve internal linking)
+- **Rank Tracking:** (monitor progress)
+EOF
+        ;;
+    *)
+        cat >> $ENHANCEMENTS << EOF
+Based on successful plugins, users love:
+- **Dashboard Analytics:** See everything at a glance
+- **Bulk Operations:** Save time with batch actions
+- **Email Notifications:** Stay informed
+- **Import/Export:** Easy data management
+- **Automation:** Set it and forget it
+EOF
+        ;;
+esac
 
 cat >> $ENHANCEMENTS << EOF
 
@@ -2288,11 +2089,6 @@ echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${BLUE}🧪 PHASE 11: Live Testing with Test Data & Visual Analysis${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-# Interactive checkpoint
-if ! checkpoint "Phase 11: Live Testing & Screenshots" "This phase generates intelligent test data based on AI analysis, creates test scenarios, and captures visual screenshots. It requires a running WordPress site and may take 10-15 minutes for comprehensive testing."; then
-    echo -e "${YELLOW}⏭️  Skipping Phase 11 - Live Testing${NC}"
-else
-
 # Local WP Configuration (pre-configured for Local WP)
 # Try to detect the actual Local WP site URL
 if [ -f "../wp-config.php" ]; then
@@ -2387,22 +2183,72 @@ $WP_URL/wp-admin/$admin_page"
     # Save URLs before data generation
     echo "$TEST_URLS" > "$AI_REPORT_DIR/tested-urls.txt"
     
-    # Execute AI-generated test data plan
-    echo "   Executing AI-generated test data plan..."
+    # Generate test data based on plugin type
+    echo "   Generating test data..."
     
-    # Check if test data plan exists from Phase 3
-    TEST_DATA_PLAN_FILE="$AI_REPORT_DIR/test-data-plan.json"
-    TEST_DATA_SCRIPT="$AI_REPORT_DIR/generate-test-data.php"
-    
-    if [ -f "$TEST_DATA_SCRIPT" ]; then
-        echo "   🚀 Running AI-generated test data script..."
-        
-        # Execute the PHP script generated by AI analysis
-        php "$TEST_DATA_SCRIPT" 2>/dev/null || {
-            echo "   ⚠️  Test data script execution had issues, trying fallback..."
+    case "$PLUGIN_TYPE" in
+        forum)
+            # Create test forum data
+            echo "   Creating test forums and topics..."
+            wp eval '
+                // Create test category
+                $forum_cat = wp_insert_term("Test Category", "forum");
+                
+                // Create test forums
+                for ($i = 1; $i <= 3; $i++) {
+                    $forum_id = wp_insert_post(array(
+                        "post_title" => "Test Forum $i",
+                        "post_content" => "This is test forum $i content",
+                        "post_type" => "forum",
+                        "post_status" => "publish"
+                    ));
+                    
+                    // Create test topics
+                    for ($j = 1; $j <= 5; $j++) {
+                        wp_insert_post(array(
+                            "post_title" => "Test Topic $j in Forum $i",
+                            "post_content" => "Test topic content",
+                            "post_type" => "topic",
+                            "post_status" => "publish",
+                            "post_parent" => $forum_id
+                        ));
+                    }
+                }
+                echo "Created test forums and topics";
+            ' 2>/dev/null || echo "   ⚠️ Could not create forum test data"
             
-            # Fallback: Create basic test content
-            echo "   Creating basic test content..."
+            # URLs to test for forums
+            TEST_URLS="$WP_URL/forums/
+$WP_URL/wp-admin/edit.php?post_type=forum
+$WP_URL/wp-admin/edit.php?post_type=topic"
+            ;;
+            
+        ecommerce)
+            # Create test products
+            echo "   Creating test products..."
+            wp eval '
+                for ($i = 1; $i <= 5; $i++) {
+                    $product_id = wp_insert_post(array(
+                        "post_title" => "Test Product $i",
+                        "post_content" => "Test product description",
+                        "post_type" => "product",
+                        "post_status" => "publish"
+                    ));
+                    update_post_meta($product_id, "_price", rand(10, 100));
+                    update_post_meta($product_id, "_stock", rand(0, 50));
+                }
+                echo "Created test products";
+            ' 2>/dev/null || echo "   ⚠️ Could not create product test data"
+            
+            TEST_URLS="$WP_URL/shop/
+$WP_URL/cart/
+$WP_URL/checkout/
+$WP_URL/wp-admin/edit.php?post_type=product"
+            ;;
+            
+        *)
+            # Generic test data
+            echo "   Creating generic test content..."
             wp eval '
                 for ($i = 1; $i <= 5; $i++) {
                     wp_insert_post(array(
@@ -2411,62 +2257,21 @@ $WP_URL/wp-admin/$admin_page"
                         "post_status" => "publish"
                     ));
                 }
-                echo "Created basic test posts";
+                echo "Created test posts";
             ' 2>/dev/null || echo "   ⚠️ Could not create test data"
-        }
-        
-        # Check what was created
-        if [ -f "$AI_REPORT_DIR/test-data-created.json" ]; then
-            CREATED_COUNT=$(grep -c ":" "$AI_REPORT_DIR/test-data-created.json" || echo 0)
-            echo "   ✅ Created $CREATED_COUNT types of test data"
-        fi
-        
-    elif [ -f "$TEST_DATA_PLAN_FILE" ]; then
-        echo "   📋 Using test data plan from AI analysis..."
-        
-        # Parse the JSON plan and create test data
-        node -e "
-        try {
-            const fs = require('fs');
-            const plan = JSON.parse(fs.readFileSync('$TEST_DATA_PLAN_FILE', 'utf8'));
             
-            // Output summary
-            console.log('Test data items to create: ' + plan.test_data.length);
+            # Get dynamic URLs from custom post types
+            TEST_URLS="$WP_URL/
+$WP_URL/wp-admin/"
             
-            // Extract URLs for testing
-            plan.test_data.forEach(item => {
-                if (item.type === 'custom_post_type') {
-                    console.log('url:/wp-admin/edit.php?post_type=' + item.name);
-                }
-            });
-        } catch(e) {
-            console.error('Could not parse test data plan');
-        }
-        " | while IFS= read -r line; do
-            if [[ $line == url:* ]]; then
-                URL=${line#url:}
-                TEST_URLS="$TEST_URLS
-$WP_URL$URL"
+            if [ ! -z "$CPT_LIST" ]; then
+                while IFS=',' read -r cpt_name cpt_label; do
+                    TEST_URLS="$TEST_URLS
+$WP_URL/wp-admin/edit.php?post_type=$cpt_name"
+                done <<< "$CPT_LIST"
             fi
-        done
-        
-        echo "   ✅ Test data plan processed"
-    else
-        echo "   ⚠️  No AI test data plan found, using basic approach..."
-        
-        # Basic fallback
-        echo "   Creating basic test content..."
-        wp eval '
-            for ($i = 1; $i <= 5; $i++) {
-                wp_insert_post(array(
-                    "post_title" => "Test Post $i",
-                    "post_content" => "Test content for post $i",
-                    "post_status" => "publish"
-                ));
-            }
-            echo "Created test posts";
-        ' 2>/dev/null || echo "   ⚠️ Could not create test data"
-    fi
+            ;;
+    esac
     
     # Create screenshots directory
     SCREENSHOTS_DIR="$AI_REPORT_DIR/screenshots"
@@ -2558,9 +2363,9 @@ EOF
 Name your screenshots based on the page type:
 - `homepage.png` - Main site
 - `admin-dashboard.png` - WP Admin
-- `plugin-settings.png` - Plugin settings page
-- `custom-post-type.png` - Custom post type pages
-- `public-page.png` - Public-facing plugin pages
+- `forum-list.png` - Forums page
+- `topic-view.png` - Single topic
+- `settings.png` - Plugin settings
 
 ## What to Look For:
 - Mobile responsiveness issues
@@ -2615,6 +2420,9 @@ Based on the captured screenshots, consider these improvements:
 - **Minification:** Minify CSS and JavaScript files
 
 EOF
+        
+    else
+        echo -e "${YELLOW}   ⚠️ Chrome/Chromium not found. Skipping screenshots.${NC}"
     fi
     
     # Test AJAX endpoints
@@ -2641,7 +2449,7 @@ EOF
 ## Test Environment
 - **Site URL:** $WP_URL
 - **Admin URL:** $WP_URL/wp-admin/
-- **Plugin Analyzed:** $PLUGIN_NAME
+- **Plugin Type:** $PLUGIN_TYPE
 
 ## Test Credentials
 - **Username:** $TEST_USER
@@ -2681,8 +2489,6 @@ EOF
         cp "$AI_REPORT_DIR/custom-post-types.txt" "$FINAL_REPORTS_DIR/" 2>/dev/null || true
     fi
 fi
-
-fi  # End of Phase 11 checkpoint
 
 # ============================================
 # PHASE 12: FRAMEWORK SAFEKEEPING

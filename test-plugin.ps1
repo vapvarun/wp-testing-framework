@@ -1,7 +1,7 @@
 # ============================================
 # WP Testing Framework - Complete AI-Driven Plugin Tester
-# PowerShell Version - Synchronized with test-plugin.sh
-# Version: 7.0.0
+# PowerShell Version - Enhanced with AST analysis, interactive mode, and optimized phase order
+# Version: 8.0.0 - Synchronized with test-plugin.sh
 # Repository: https://github.com/vapvarun/wp-testing-framework/
 # ============================================
 
@@ -10,12 +10,22 @@ param(
     [string]$PluginName,
     
     [Parameter(Position=1)]
-    [ValidateSet("full", "quick", "security", "performance")]
+    [ValidateSet("full", "quick", "security", "performance", "ai")]
     [string]$TestType = "full",
     
+    [Parameter(Position=2)]
+    [bool]$SkipInteractive = $false,
+    
     [switch]$InstallTools,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$UseAst = $true,
+    [switch]$Interactive = $true
 )
+
+# Configuration
+$TimeoutLong = 300   # 5 minutes for long operations
+$TimeoutShort = 60   # 1 minute for quick operations
+$BatchSize = 100     # Process files in batches for large plugins
 
 # Set strict mode
 Set-StrictMode -Version Latest
@@ -43,6 +53,64 @@ function Write-Success($message) { Write-Host "✅ $message" -ForegroundColor $c
 function Write-Error($message) { Write-Host "❌ $message" -ForegroundColor $colors.Red }
 function Write-Warning($message) { Write-Host "⚠️  $message" -ForegroundColor $colors.Yellow }
 function Write-Info($message) { Write-Host "ℹ️  $message" -ForegroundColor $colors.Blue }
+
+# Interactive checkpoint function
+function Invoke-Checkpoint($phase, $description) {
+    if ($Interactive -and -not $SkipInteractive) {
+        Write-Host ""
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $colors.Magenta
+        Write-Host "🔄 Checkpoint: $phase" -ForegroundColor $colors.Magenta
+        Write-Host $description -ForegroundColor $colors.Yellow
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $colors.Magenta
+        Write-Host ""
+        Write-Host "Options:"
+        Write-Host "  [Enter] Continue to next phase"
+        Write-Host "  [s]     Skip this phase"
+        Write-Host "  [v]     View current results"
+        Write-Host "  [q]     Quit analysis"
+        Write-Host ""
+        
+        $choice = Read-Host "Your choice"
+        
+        switch ($choice.ToLower()) {
+            "s" {
+                Write-Warning "⏭️  Skipping $phase"
+                return $false
+            }
+            "v" {
+                Write-Info "📊 Current results in: $ScanDir"
+                if (Test-Path $ScanDir) {
+                    Get-ChildItem $ScanDir | Select-Object -First 10 | Format-Table
+                }
+                Read-Host "Press Enter to continue..."
+                return $true
+            }
+            "q" {
+                Write-Error "❌ Analysis cancelled by user"
+                exit 0
+            }
+            default {
+                return $true
+            }
+        }
+    }
+    return $true
+}
+
+# Run with timeout function
+function Invoke-WithTimeout($timeoutSeconds, $scriptBlock) {
+    $job = Start-Job -ScriptBlock $scriptBlock
+    if (Wait-Job $job -Timeout $timeoutSeconds) {
+        $result = Receive-Job $job
+        Remove-Job $job
+        return $result
+    }
+    else {
+        Remove-Job $job -Force
+        Write-Warning "⚠️  Operation timed out after $timeoutSeconds seconds"
+        return $null
+    }
+}
 
 # Show help
 if ($Help) {
@@ -279,51 +347,136 @@ Plugin Info:
 Set-Content -Path "$SCAN_DIR\reports\text\basic-analysis.txt" -Value $basicReport
 Write-Success "Basic analysis complete"
 
-# Phase 3: AI-Driven Deep Analysis (Simulated)
+# Phase 3: AI-Driven Deep Analysis with AST
 if ($TestType -eq "full" -or $TestType -eq "security") {
-    Write-Phase "Phase 3: AI-Driven Deep Analysis"
     
-    Write-Info "Analyzing code patterns..."
-    
-    # Check for common WordPress hooks
-    $hooks = @('add_action', 'add_filter', 'do_action', 'apply_filters')
-    $hookCount = 0
-    foreach ($hook in $hooks) {
-        $found = $phpFiles | ForEach-Object {
-            (Get-Content $_.FullName | Select-String $hook).Count
-        } | Measure-Object -Sum
-        $hookCount += $found.Sum
+    # Interactive checkpoint
+    if (!(Invoke-Checkpoint "Phase 3: AI-Driven Code Analysis" "This phase performs comprehensive code analysis using grep baseline, professional PHP tools (PHPStan, PHPCS, Psalm), and AST parsing for maximum accuracy. Large plugins like BuddyPress may take 5-10 minutes.")) {
+        Write-Warning "⏭️  Skipping Phase 3 - AI Analysis"
+        Write-Host "You can run this separately later with: npm run analyze:functionality"
     }
-    Write-Host "  • WordPress hooks found: $hookCount"
-    
-    # Check for database operations
-    $dbPatterns = @('$wpdb', 'get_option', 'update_option', 'get_post_meta', 'update_post_meta')
-    $dbOps = 0
-    foreach ($pattern in $dbPatterns) {
-        $found = $phpFiles | ForEach-Object {
-            (Get-Content $_.FullName | Select-String $pattern).Count
-        } | Measure-Object -Sum
-        $dbOps += $found.Sum
-    }
-    Write-Host "  • Database operations: $dbOps"
-    
-    # Check for AJAX handlers
-    $ajaxPatterns = @('wp_ajax_', 'admin-ajax.php', 'wp_localize_script')
-    $ajaxFound = $false
-    foreach ($pattern in $ajaxPatterns) {
-        $found = $phpFiles | ForEach-Object {
-            Get-Content $_.FullName | Select-String $pattern
+    else {
+        Write-Phase "Phase 3: AI-Driven Code Analysis with AST"
+        
+        Write-Info "📊 Analyzing code structure..."
+        Write-Host "   📁 Found: $($phpFiles.Count) PHP files"
+        
+        # AST Analysis Phase - Run this first for accurate baseline
+        $AstOutput = "$ScanDir\ast-analysis.json"
+        if ($UseAst -and (Test-Path "tools\php-ast-analyzer.js")) {
+            Write-Info "🌳 Running AST Analysis with php-parser (most accurate)..."
+            
+            # Check if php-parser is installed
+            $nodeCheck = Invoke-Expression "node -e `"require('php-parser')`"" 2>$null
+            if (-not $nodeCheck) {
+                Write-Info "📦 Installing php-parser for AST analysis..."
+                try {
+                    Invoke-Expression "npm install php-parser --silent" | Out-Null
+                }
+                catch {
+                    Write-Warning "Failed to install php-parser"
+                }
+            }
+            
+            # Run AST analysis with timeout for large plugins
+            $astCommand = "node tools\php-ast-analyzer.js `"$PluginPath`" `"$AstOutput`""
+            Write-Info "Running AST analysis (timeout: $TimeoutLong seconds)..."
+            
+            try {
+                $astJob = Start-Job -ScriptBlock { 
+                    param($cmd)
+                    Invoke-Expression $cmd 
+                } -ArgumentList $astCommand
+                
+                if (Wait-Job $astJob -Timeout $TimeoutLong) {
+                    $astResult = Receive-Job $astJob
+                    Remove-Job $astJob
+                    
+                    if (Test-Path $AstOutput) {
+                        Write-Success "✅ AST analysis completed successfully"
+                        
+                        # Extract key metrics from AST for intelligent test data generation
+                        $astData = Get-Content $AstOutput | ConvertFrom-Json
+                        $hookCount = if ($astData.total.hooks) { $astData.total.hooks } else { 0 }
+                        $shortcodeCount = if ($astData.total.shortcodes) { $astData.total.shortcodes } else { 0 }
+                        $ajaxCount = if ($astData.total.ajax_handlers) { $astData.total.ajax_handlers } else { 0 }
+                        $restCount = if ($astData.total.rest_endpoints) { $astData.total.rest_endpoints } else { 0 }
+                        $funcCount = if ($astData.total.functions) { $astData.total.functions } else { 0 }
+                        $classCount = if ($astData.total.classes) { $astData.total.classes } else { 0 }
+                        
+                        Write-Host "   📊 AST Detected: $funcCount functions, $classCount classes, $hookCount hooks, $shortcodeCount shortcodes" -ForegroundColor Green
+                        
+                        # Copy AST analysis to AI directory for processing
+                        $aiDir = "$ScanDir\ai-analysis"
+                        if (!(Test-Path $aiDir)) { New-Item -ItemType Directory -Path $aiDir -Force | Out-Null }
+                        Copy-Item $AstOutput "$aiDir\ast-analysis.json" -Force
+                    }
+                    else {
+                        Write-Warning "AST analysis completed but no output file generated"
+                        $UseAst = $false
+                    }
+                }
+                else {
+                    Remove-Job $astJob -Force
+                    Write-Warning "⚠️  AST analysis timed out, falling back to grep analysis"
+                    $UseAst = $false
+                }
+            }
+            catch {
+                Write-Warning "⚠️  AST analysis failed: $($_.Exception.Message)"
+                $UseAst = $false
+            }
         }
-        if ($found) {
-            $ajaxFound = $true
-            break
+        else {
+            Write-Info "📝 Using grep-based analysis (AST disabled or tools missing)"
+            $UseAst = $false
         }
+        
+        # Fallback grep analysis if AST failed or is disabled
+        if (-not $UseAst -or -not (Test-Path $AstOutput)) {
+            Write-Info "Running fallback grep analysis..."
+            
+            # Check for common WordPress hooks
+            $hooks = @('add_action', 'add_filter', 'do_action', 'apply_filters')
+            $hookCount = 0
+            foreach ($hook in $hooks) {
+                $found = $phpFiles | ForEach-Object {
+                    (Get-Content $_.FullName | Select-String $hook).Count
+                } | Measure-Object -Sum
+                $hookCount += $found.Sum
+            }
+            Write-Host "  • WordPress hooks found: $hookCount"
+            
+            # Check for database operations
+            $dbPatterns = @('$wpdb', 'get_option', 'update_option', 'get_post_meta', 'update_post_meta')
+            $dbOps = 0
+            foreach ($pattern in $dbPatterns) {
+                $found = $phpFiles | ForEach-Object {
+                    (Get-Content $_.FullName | Select-String $pattern).Count
+                } | Measure-Object -Sum
+                $dbOps += $found.Sum
+            }
+            Write-Host "  • Database operations: $dbOps"
+            
+            # Check for AJAX handlers
+            $ajaxPatterns = @('wp_ajax_', 'admin-ajax.php', 'wp_localize_script')
+            $ajaxFound = $false
+            foreach ($pattern in $ajaxPatterns) {
+                $found = $phpFiles | ForEach-Object {
+                    Get-Content $_.FullName | Select-String $pattern
+                }
+                if ($found) {
+                    $ajaxFound = $true
+                    break
+                }
+            }
+            if ($ajaxFound) {
+                Write-Host "  • AJAX functionality: Detected"
+            }
+        }
+        
+        Write-Success "AI analysis complete"
     }
-    if ($ajaxFound) {
-        Write-Host "  • AJAX functionality: Detected"
-    }
-    
-    Write-Success "AI analysis complete"
 }
 
 # Phase 4: Security Vulnerability Scanning
