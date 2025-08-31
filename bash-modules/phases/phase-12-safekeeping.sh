@@ -20,15 +20,14 @@ run_phase_12() {
     # Safekeeping report
     SAFEKEEP_REPORT="$SCAN_DIR/reports/safekeeping-report.md"
     
-    # Create safekeeping directories
-    SAFEKEEP_BASE="$FRAMEWORK_PATH/safekeeping"
-    ARCHIVE_DIR="$SAFEKEEP_BASE/archives"
-    BACKUP_DIR="$SAFEKEEP_BASE/backups"
-    HISTORY_DIR="$SAFEKEEP_BASE/history"
+    # Create safekeeping directories IN wbcom-scan, not framework
+    # Each plugin gets its own archive history
+    SAFEKEEP_BASE="$WP_CONTENT_PATH/uploads/wbcom-scan/$plugin_name/archives"
+    ARCHIVE_DIR="$SAFEKEEP_BASE"
+    HISTORY_DIR="$WP_CONTENT_PATH/uploads/wbcom-scan/$plugin_name/history"
     
     ensure_directory "$SAFEKEEP_BASE"
     ensure_directory "$ARCHIVE_DIR"
-    ensure_directory "$BACKUP_DIR"
     ensure_directory "$HISTORY_DIR"
     
     # Archive current scan results
@@ -136,25 +135,23 @@ run_phase_12() {
         HEALTH_STATUS="Warning"
     fi
     
-    # Backup framework configuration
-    print_info "Backing up framework configuration..."
+    # Store scan metadata with the archive
+    SCAN_METADATA="$ARCHIVE_DIR/scan-metadata-$(date +"%Y%m%d_%H%M%S").json"
     
-    CONFIG_BACKUP="$BACKUP_DIR/framework-config-$(date +"%Y%m%d").json"
-    
-    cat > "$CONFIG_BACKUP" << EOF
+    cat > "$SCAN_METADATA" << EOF
 {
     "date": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+    "plugin": "$plugin_name",
     "framework_version": "12.0",
-    "last_plugin": "$plugin_name",
+    "archive": "$ARCHIVE_NAME",
     "health_status": "$HEALTH_STATUS",
-    "php_version": "$(php -v 2>/dev/null | head -1 || echo "Not installed")",
-    "node_version": "$(node -v 2>/dev/null || echo "Not installed")",
-    "wp_cli": "$(wp --version 2>/dev/null || echo "Not installed")"
+    "environment": {
+        "php_version": "$(php -v 2>/dev/null | head -1 || echo "Not installed")",
+        "node_version": "$(node -v 2>/dev/null || echo "Not installed")",
+        "wp_cli": "$(wp --version 2>/dev/null || echo "Not installed")"
+    }
 }
 EOF
-    
-    # Update VERSION file
-    echo "12.0" > "$FRAMEWORK_PATH/VERSION"
     
     # Calculate storage usage
     ARCHIVE_TOTAL=$(du -sh "$ARCHIVE_DIR" 2>/dev/null | cut -f1)
