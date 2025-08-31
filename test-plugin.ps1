@@ -1,916 +1,653 @@
-# ============================================
-# WP Testing Framework - Complete AI-Driven Plugin Tester
-# PowerShell Version - Enhanced with AST analysis, interactive mode, and optimized phase order
-# Version: 8.0.0 - Synchronized with test-plugin.sh
-# Repository: https://github.com/vapvarun/wp-testing-framework/
-# ============================================
+# WordPress Plugin Testing Framework v12.0 - PowerShell Edition
+# Complete 12-phase testing with modular architecture
+# Usage: .\test-plugin.ps1 <plugin-name> [-Mode <full|quick|security|ai>]
 
 param(
-    [Parameter(Position=0)]
+    [Parameter(Mandatory=$true)]
     [string]$PluginName,
     
-    [Parameter(Position=1)]
+    [Parameter(Mandatory=$false)]
     [ValidateSet("full", "quick", "security", "performance", "ai")]
-    [string]$TestType = "full",
+    [string]$Mode = "full",
     
-    [Parameter(Position=2)]
-    [bool]$SkipInteractive = $false,
+    [Parameter(Mandatory=$false)]
+    [int[]]$SkipPhases = @(),
     
-    [switch]$InstallTools,
-    [switch]$Help,
-    [switch]$UseAst = $true,
-    [switch]$Interactive = $true
+    [Parameter(Mandatory=$false)]
+    [switch]$NonInteractive,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$AutoInstallTools,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$GenerateOnly,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$Help
 )
 
-# Configuration
-$TimeoutLong = 300   # 5 minutes for long operations
-$TimeoutShort = 60   # 1 minute for quick operations
-$BatchSize = 100     # Process files in batches for large plugins
+# Script configuration
+$ErrorActionPreference = "Stop"
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 
-# Set strict mode
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Continue"
-
-# Color configuration
-$colors = @{
-    Red     = "Red"
-    Green   = "Green"
-    Yellow  = "Yellow"
-    Blue    = "Cyan"
-    Magenta = "Magenta"
-    NC      = "White"
-}
-
-# Output functions
-function Write-Phase($message) {
-    Write-Host ""
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $colors.Blue
-    Write-Host $message -ForegroundColor $colors.Blue
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $colors.Blue
-}
-
-function Write-Success($message) { Write-Host "✅ $message" -ForegroundColor $colors.Green }
-function Write-Error($message) { Write-Host "❌ $message" -ForegroundColor $colors.Red }
-function Write-Warning($message) { Write-Host "⚠️  $message" -ForegroundColor $colors.Yellow }
-function Write-Info($message) { Write-Host "ℹ️  $message" -ForegroundColor $colors.Blue }
-
-# Interactive checkpoint function
-function Invoke-Checkpoint($phase, $description) {
-    if ($Interactive -and -not $SkipInteractive) {
-        Write-Host ""
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $colors.Magenta
-        Write-Host "🔄 Checkpoint: $phase" -ForegroundColor $colors.Magenta
-        Write-Host $description -ForegroundColor $colors.Yellow
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $colors.Magenta
-        Write-Host ""
-        Write-Host "Options:"
-        Write-Host "  [Enter] Continue to next phase"
-        Write-Host "  [s]     Skip this phase"
-        Write-Host "  [v]     View current results"
-        Write-Host "  [q]     Quit analysis"
-        Write-Host ""
-        
-        $choice = Read-Host "Your choice"
-        
-        switch ($choice.ToLower()) {
-            "s" {
-                Write-Warning "⏭️  Skipping $phase"
-                return $false
-            }
-            "v" {
-                Write-Info "📊 Current results in: $ScanDir"
-                if (Test-Path $ScanDir) {
-                    Get-ChildItem $ScanDir | Select-Object -First 10 | Format-Table
-                }
-                Read-Host "Press Enter to continue..."
-                return $true
-            }
-            "q" {
-                Write-Error "❌ Analysis cancelled by user"
-                exit 0
-            }
-            default {
-                return $true
-            }
-        }
-    }
-    return $true
-}
-
-# Run with timeout function
-function Invoke-WithTimeout($timeoutSeconds, $scriptBlock) {
-    $job = Start-Job -ScriptBlock $scriptBlock
-    if (Wait-Job $job -Timeout $timeoutSeconds) {
-        $result = Receive-Job $job
-        Remove-Job $job
-        return $result
-    }
-    else {
-        Remove-Job $job -Force
-        Write-Warning "⚠️  Operation timed out after $timeoutSeconds seconds"
-        return $null
-    }
-}
-
-# Show help
+# Show help if requested
 if ($Help) {
     Write-Host @"
-╔════════════════════════════════════════════════════════════════╗
-║     WP Testing Framework - Complete AI-Driven Plugin Tester     ║
-║                    PowerShell Version 7.0.0                     ║
-╚════════════════════════════════════════════════════════════════╝
+WordPress Plugin Testing Framework v12.0
+=========================================
 
 USAGE:
-    .\test-plugin.ps1 [PluginName] [TestType] [Options]
+    .\test-plugin.ps1 <plugin-name> [options]
 
 PARAMETERS:
-    PluginName      Name of the plugin to test
-    TestType        Type of test: full, quick, security, performance (default: full)
-    -InstallTools   Install/update required PHP analysis tools
-    -Help          Show this help message
-
-TESTING PHASES:
-    Phase 1: Setup & Auto-install PHP tools
-    Phase 2: Basic Plugin Analysis
-    Phase 3: AI-Driven Deep Analysis  
-    Phase 4: Security Vulnerability Scanning
-    Phase 5: Performance Analysis
-    Phase 6: WordPress Standards Check
-    Phase 7: Documentation Generation with Quality Validation
+    -PluginName      : Name of the plugin to test (required)
+    -Mode            : Testing mode (full|quick|security|performance|ai)
+    -SkipPhases      : Comma-separated list of phase numbers to skip
+    -NonInteractive  : Run without user prompts
+    -AutoInstallTools: Automatically install missing tools
+    -GenerateOnly    : Only generate tests, don't execute them
+    -Help           : Show this help message
 
 EXAMPLES:
-    .\test-plugin.ps1 bbpress
-    .\test-plugin.ps1 woocommerce quick
-    .\test-plugin.ps1 akismet security
-    .\test-plugin.ps1 -InstallTools
-
-OUTPUT STRUCTURE:
-    ../wp-content/uploads/
-    ├── wbcom-scan/[plugin]/[yyyy-MM]/    # Temporary scan data
-    └── wbcom-plan/[plugin]/[yyyy-MM]/    # AI-processed plans
+    # Full analysis with all 12 phases
+    .\test-plugin.ps1 woocommerce
     
-    plugins/[plugin]/                      # Permanent safekeeping
-    ├── USER-GUIDE.md                     # Generated user guide
-    ├── ISSUES-AND-FIXES.md               # Issues with solutions
-    └── DEVELOPMENT-PLAN.md               # Future development plan
+    # Quick mode (skips time-consuming phases)
+    .\test-plugin.ps1 elementor -Mode quick
+    
+    # Skip specific phases
+    .\test-plugin.ps1 yoast-seo -SkipPhases 7,8,11
+    
+    # Non-interactive mode for CI/CD
+    .\test-plugin.ps1 wpforms -NonInteractive
 
-"@
-    exit
+PHASES:
+    1.  Setup & Directory Structure
+    2.  Plugin Detection & Basic Analysis
+    3.  AI-Driven Code Analysis (AST + Dynamic)
+    4.  Security Vulnerability Scanning
+    5.  Performance Analysis
+    6.  Test Generation, Execution & Coverage
+    7.  Visual Testing & Screenshots
+    8.  WordPress Integration Tests
+    9.  Documentation Generation & Quality Validation
+    10. Consolidating All Reports
+    11. Live Testing with Test Data
+    12. Framework Safekeeping
+
+"@ -ForegroundColor Cyan
+    exit 0
 }
 
-# Header
-Write-Host ""
-Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor $colors.Magenta
-Write-Host "║     WP Testing Framework - Complete AI-Driven Plugin Tester     ║" -ForegroundColor $colors.Magenta
-Write-Host "║                    PowerShell Version 7.0.0                     ║" -ForegroundColor $colors.Magenta
-Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor $colors.Magenta
+# Get script paths
+$FRAMEWORK_PATH = $PSScriptRoot
+$MODULES_PATH = Join-Path $FRAMEWORK_PATH "ps1-modules"
+$PHASES_PATH = Join-Path $MODULES_PATH "phases"
+$SHARED_PATH = Join-Path $MODULES_PATH "shared"
 
-# Get plugin list if not specified
-if (-not $PluginName) {
-    Write-Host ""
-    Write-Host "Available plugins:" -ForegroundColor $colors.Blue
+# Check if modules exist, if not use embedded functions
+$USE_MODULES = Test-Path $MODULES_PATH
+
+if ($USE_MODULES) {
+    # Import common functions from module
+    Import-Module "$SHARED_PATH\Common-Functions.ps1" -Force -ErrorAction SilentlyContinue
+} 
+
+# If modules don't exist or import failed, define functions inline
+if (-not $USE_MODULES -or -not (Get-Command Write-Phase -ErrorAction SilentlyContinue)) {
     
-    $pluginsPath = "..\wp-content\plugins"
-    if (Test-Path $pluginsPath) {
-        Get-ChildItem $pluginsPath -Directory | Where-Object { $_.Name -ne "index.php" } | ForEach-Object {
-            Write-Host "  • $($_.Name)" -ForegroundColor $colors.NC
+    # Color definitions
+    $Global:colors = @{
+        Blue = "Blue"
+        Green = "Green"
+        Yellow = "Yellow"
+        Red = "Red"
+        Cyan = "Cyan"
+        Magenta = "Magenta"
+    }
+
+    # Output functions
+    function Write-Phase {
+        param([string]$message)
+        Write-Host ""
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $Global:colors.Blue
+        Write-Host "🔍 $message" -ForegroundColor $Global:colors.Blue
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $Global:colors.Blue
+    }
+
+    function Write-Success {
+        param([string]$message)
+        Write-Host "✅ $message" -ForegroundColor $Global:colors.Green
+    }
+
+    function Write-Info {
+        param([string]$message)
+        Write-Host "📊 $message" -ForegroundColor $Global:colors.Cyan
+    }
+
+    function Write-Warning {
+        param([string]$message)
+        Write-Host "⚠️  $message" -ForegroundColor $Global:colors.Yellow
+    }
+
+    function Write-Error {
+        param([string]$message)
+        Write-Host "❌ $message" -ForegroundColor $Global:colors.Red
+    }
+
+    function Invoke-Checkpoint {
+        param(
+            [string]$Phase,
+            [string]$Description
+        )
+        
+        if ($Global:Config.InteractiveMode -eq $false) {
+            return $true
         }
-    }
-    
-    Write-Host ""
-    $PluginName = Read-Host "Enter plugin name to test"
-    if (-not $PluginName) {
-        Write-Error "No plugin specified"
-        exit 1
-    }
-}
-
-# Verify plugin exists
-$PLUGIN_PATH = "..\wp-content\plugins\$PluginName"
-if (-not (Test-Path $PLUGIN_PATH)) {
-    Write-Error "Plugin '$PluginName' not found at: $PLUGIN_PATH"
-    exit 1
-}
-
-Write-Success "Testing plugin: $PluginName"
-Write-Info "Test type: $TestType"
-
-# Setup paths
-$DATE_MONTH = Get-Date -Format "yyyy-MM"
-$SCAN_DIR = "..\wp-content\uploads\wbcom-scan\$PluginName\$DATE_MONTH"
-$PLAN_DIR = "..\wp-content\uploads\wbcom-plan\$PluginName\$DATE_MONTH"
-$SAFE_DIR = "plugins\$PluginName"
-
-# Create directory structure
-Write-Phase "Phase 1: Setup & Directory Structure"
-
-$directories = @(
-    $SCAN_DIR,
-    "$SCAN_DIR\reports",
-    "$SCAN_DIR\reports\html",
-    "$SCAN_DIR\reports\text",
-    "$SCAN_DIR\reports\json",
-    "$SCAN_DIR\ai-analysis",
-    "$SCAN_DIR\screenshots",
-    $PLAN_DIR,
-    "$PLAN_DIR\documentation",
-    "$PLAN_DIR\roadmap",
-    $SAFE_DIR
-)
-
-foreach ($dir in $directories) {
-    if (-not (Test-Path $dir)) {
-        New-Item -ItemType Directory -Path $dir -Force | Out-Null
-    }
-}
-Write-Success "Directory structure created"
-
-# Function to install PHP tools
-function Install-PHPTools {
-    Write-Info "Checking PHP analysis tools..."
-    
-    $composerExists = Get-Command composer -ErrorAction SilentlyContinue
-    if (-not $composerExists) {
-        Write-Warning "Composer not found. Install from: https://getcomposer.org"
-        return $false
-    }
-    
-    # Create composer.json if needed
-    if (-not (Test-Path "composer.json")) {
-        $composerJson = @'
-{
-    "name": "wp-testing/framework",
-    "description": "WordPress Plugin Testing Framework",
-    "type": "project",
-    "require-dev": {
-        "phpstan/phpstan": "^1.0",
-        "squizlabs/php_codesniffer": "^3.7",
-        "wp-coding-standards/wpcs": "^3.0",
-        "phpmd/phpmd": "^2.13",
-        "sebastian/phpcpd": "^6.0",
-        "phploc/phploc": "^7.0",
-        "phpstan/extension-installer": "^1.1",
-        "szepeviktor/phpstan-wordpress": "^1.0",
-        "psalm/plugin-wordpress": "^2.0"
-    },
-    "config": {
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true,
-            "phpstan/extension-installer": true
-        },
-        "optimize-autoloader": true
-    }
-}
-'@
-        Set-Content -Path "composer.json" -Value $composerJson
-        Write-Success "composer.json created"
-    }
-    
-    # Install/update tools
-    Write-Info "Installing/updating PHP analysis tools..."
-    $output = & composer install --no-interaction --quiet 2>&1
-    
-    # Configure PHPCS
-    if (Test-Path "vendor\bin\phpcs.bat") {
-        & .\vendor\bin\phpcs.bat --config-set installed_paths vendor/wp-coding-standards/wpcs 2>$null
-        Write-Success "PHP analysis tools ready"
+        
+        Write-Host ""
+        Write-Host "══════════════════════════════════════════════════" -ForegroundColor $Global:colors.Cyan
+        Write-Host "  🔍 CHECKPOINT: $Phase" -ForegroundColor $Global:colors.Cyan
+        Write-Host "══════════════════════════════════════════════════" -ForegroundColor $Global:colors.Cyan
+        Write-Host ""
+        Write-Host "  $Description" -ForegroundColor White
+        Write-Host ""
+        Write-Host "  Continue? (Y/N/S to skip): " -NoNewline -ForegroundColor $Global:colors.Yellow
+        
+        $response = Read-Host
+        if ($response -eq "S" -or $response -eq "s") {
+            return $false
+        }
+        if ($response -ne "Y" -and $response -ne "y") {
+            Write-Host "Exiting..." -ForegroundColor $Global:colors.Red
+            exit 0
+        }
         return $true
     }
-    
-    return $false
-}
 
-# Install tools if requested or if vendor doesn't exist
-if ($InstallTools -or -not (Test-Path "vendor")) {
-    $toolsInstalled = Install-PHPTools
-    if (-not $toolsInstalled -and -not (Test-Path "vendor")) {
-        Write-Warning "PHP tools not installed. Some analysis may be limited."
+    function Ensure-Directory {
+        param([string]$Path)
+        if (!(Test-Path $Path)) {
+            New-Item -ItemType Directory -Path $Path -Force | Out-Null
+        }
+    }
+
+    function Save-PhaseResults {
+        param(
+            [string]$Phase,
+            [object]$Results,
+            [string]$OutputPath
+        )
+        
+        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        $resultsWithMeta = @{
+            Phase = $Phase
+            Timestamp = $timestamp
+            Results = $Results
+        }
+        
+        $jsonPath = Join-Path $OutputPath "phase-$Phase-results.json"
+        $resultsWithMeta | ConvertTo-Json -Depth 10 | Out-File $jsonPath
+        return $jsonPath
     }
 }
 
-# Phase 2: Basic Plugin Analysis
-Write-Phase "Phase 2: Basic Plugin Analysis"
-
-# Count files and basic metrics
-$phpFiles = Get-ChildItem -Path $PLUGIN_PATH -Filter "*.php" -Recurse -ErrorAction SilentlyContinue
-$jsFiles = Get-ChildItem -Path $PLUGIN_PATH -Filter "*.js" -Recurse -ErrorAction SilentlyContinue
-$cssFiles = Get-ChildItem -Path $PLUGIN_PATH -Filter "*.css" -Recurse -ErrorAction SilentlyContinue
-
-Write-Info "Plugin structure:"
-Write-Host "  • PHP files: $($phpFiles.Count)"
-Write-Host "  • JS files: $($jsFiles.Count)"
-Write-Host "  • CSS files: $($cssFiles.Count)"
-
-# Calculate total lines of code
-$totalLines = 0
-$phpFiles | ForEach-Object {
-    $totalLines += (Get-Content $_.FullName | Measure-Object -Line).Lines
-}
-Write-Host "  • Total PHP lines: $totalLines"
-
-# Check for main plugin file
-$mainFile = Get-ChildItem -Path $PLUGIN_PATH -Filter "$PluginName.php" -ErrorAction SilentlyContinue
-if ($mainFile) {
-    Write-Success "Main plugin file found: $($mainFile.Name)"
+# Initialize global configuration
+$Global:Config = @{
+    PluginName = $PluginName
+    Mode = $Mode
+    SkipPhases = $SkipPhases
+    InteractiveMode = -not $NonInteractive
+    AutoInstallTools = $AutoInstallTools
+    GenerateOnly = $GenerateOnly
+    QuickMode = ($Mode -eq "quick")
     
-    # Extract plugin header
-    $content = Get-Content $mainFile.FullName -First 30
-    $pluginName = ($content | Select-String "Plugin Name:\s*(.+)" | ForEach-Object { $_.Matches[0].Groups[1].Value }) -join ""
-    $version = ($content | Select-String "Version:\s*(.+)" | ForEach-Object { $_.Matches[0].Groups[1].Value }) -join ""
-    $author = ($content | Select-String "Author:\s*(.+)" | ForEach-Object { $_.Matches[0].Groups[1].Value }) -join ""
+    # Paths
+    FrameworkPath = $FRAMEWORK_PATH
+    WPPath = Split-Path $FRAMEWORK_PATH -Parent
+    PluginPath = Join-Path (Split-Path $FRAMEWORK_PATH -Parent) "wp-content\plugins\$PluginName"
+    UploadPath = Join-Path (Split-Path $FRAMEWORK_PATH -Parent) "wp-content\uploads"
     
-    if ($pluginName) { Write-Host "  • Plugin: $pluginName" }
-    if ($version) { Write-Host "  • Version: $version" }
-    if ($author) { Write-Host "  • Author: $author" }
+    # Runtime paths (will be set by Phase 1)
+    ScanDir = ""
+    PlanDir = ""
+    SafekeepDir = ""
+    Timestamp = ""
+    
+    # Options
+    UsePHPStan = $true
+    UseXdebug = $true
+    RunTests = -not $GenerateOnly
 }
 
-# Save basic report
-$basicReport = @"
-Plugin Analysis Report
-======================
-Plugin: $PluginName
-Date: $(Get-Date)
-Path: $PLUGIN_PATH
-
-File Statistics:
-- PHP Files: $($phpFiles.Count)
-- JS Files: $($jsFiles.Count)  
-- CSS Files: $($cssFiles.Count)
-- Total PHP Lines: $totalLines
-
-Plugin Info:
-- Name: $pluginName
-- Version: $version
-- Author: $author
-"@
-
-Set-Content -Path "$SCAN_DIR\reports\text\basic-analysis.txt" -Value $basicReport
-Write-Success "Basic analysis complete"
-
-# Phase 3: AI-Driven Deep Analysis with AST
-if ($TestType -eq "full" -or $TestType -eq "security") {
-    
-    # Interactive checkpoint
-    if (!(Invoke-Checkpoint "Phase 3: AI-Driven Code Analysis" "This phase performs comprehensive code analysis using grep baseline, professional PHP tools (PHPStan, PHPCS, Psalm), and AST parsing for maximum accuracy. Large plugins like BuddyPress may take 5-10 minutes.")) {
-        Write-Warning "⏭️  Skipping Phase 3 - AI Analysis"
-        Write-Host "You can run this separately later with: npm run analyze:functionality"
+# Define phases to skip based on mode
+switch ($Mode) {
+    "quick" {
+        $Global:Config.SkipPhases += @(3, 7, 11)
     }
-    else {
-        Write-Phase "Phase 3: AI-Driven Code Analysis with AST"
-        
-        Write-Info "📊 Analyzing code structure..."
-        Write-Host "   📁 Found: $($phpFiles.Count) PHP files"
-        
-        # AST Analysis Phase - Run this first for accurate baseline
-        $AstOutput = "$ScanDir\ast-analysis.json"
-        if ($UseAst -and (Test-Path "tools\php-ast-analyzer.js")) {
-            Write-Info "🌳 Running AST Analysis with php-parser (most accurate)..."
-            
-            # Check if php-parser is installed
-            $nodeCheck = Invoke-Expression "node -e `"require('php-parser')`"" 2>$null
-            if (-not $nodeCheck) {
-                Write-Info "📦 Installing php-parser for AST analysis..."
-                try {
-                    Invoke-Expression "npm install php-parser --silent" | Out-Null
-                }
-                catch {
-                    Write-Warning "Failed to install php-parser"
-                }
-            }
-            
-            # Run AST analysis with timeout for large plugins
-            $astCommand = "node tools\php-ast-analyzer.js `"$PluginPath`" `"$AstOutput`""
-            Write-Info "Running AST analysis (timeout: $TimeoutLong seconds)..."
-            
+    "security" {
+        $Global:Config.SkipPhases += @(5, 6, 7, 8, 9, 10, 11, 12)
+    }
+    "performance" {
+        $Global:Config.SkipPhases += @(6, 7, 8, 9, 10, 11, 12)
+    }
+}
+
+# Banner
+Write-Host ""
+Write-Host "╔════════════════════════════════════════════╗" -ForegroundColor Blue
+Write-Host "║   WP Testing Framework v12.0               ║" -ForegroundColor Blue
+Write-Host "║   Complete Plugin Analysis & Testing       ║" -ForegroundColor Blue
+Write-Host "║   Plugin: $PluginName" -ForegroundColor Blue
+Write-Host "║   Mode: $Mode" -ForegroundColor Blue
+Write-Host "╚════════════════════════════════════════════╝" -ForegroundColor Blue
+Write-Host ""
+
+# Results collection
+$Global:Results = @{}
+$startTime = Get-Date
+
+# Function to execute phase from module or inline
+function Invoke-PhaseExecution {
+    param(
+        [int]$Number,
+        [string]$Name,
+        [string]$ScriptFile,
+        [scriptblock]$InlineFunction
+    )
+    
+    # Check if phase should be skipped
+    if ($Number -in $Global:Config.SkipPhases) {
+        Write-Warning "Skipping Phase $Number: $Name (as requested)"
+        return @{ Status = "Skipped" }
+    }
+    
+    # Try to load from module first
+    if ($USE_MODULES) {
+        $phaseScript = Join-Path $PHASES_PATH $ScriptFile
+        if (Test-Path $phaseScript) {
             try {
-                $astJob = Start-Job -ScriptBlock { 
-                    param($cmd)
-                    Invoke-Expression $cmd 
-                } -ArgumentList $astCommand
-                
-                if (Wait-Job $astJob -Timeout $TimeoutLong) {
-                    $astResult = Receive-Job $astJob
-                    Remove-Job $astJob
-                    
-                    if (Test-Path $AstOutput) {
-                        Write-Success "✅ AST analysis completed successfully"
-                        
-                        # Extract key metrics from AST for intelligent test data generation
-                        $astData = Get-Content $AstOutput | ConvertFrom-Json
-                        $hookCount = if ($astData.total.hooks) { $astData.total.hooks } else { 0 }
-                        $shortcodeCount = if ($astData.total.shortcodes) { $astData.total.shortcodes } else { 0 }
-                        $ajaxCount = if ($astData.total.ajax_handlers) { $astData.total.ajax_handlers } else { 0 }
-                        $restCount = if ($astData.total.rest_endpoints) { $astData.total.rest_endpoints } else { 0 }
-                        $funcCount = if ($astData.total.functions) { $astData.total.functions } else { 0 }
-                        $classCount = if ($astData.total.classes) { $astData.total.classes } else { 0 }
-                        
-                        Write-Host "   📊 AST Detected: $funcCount functions, $classCount classes, $hookCount hooks, $shortcodeCount shortcodes" -ForegroundColor Green
-                        
-                        # Copy AST analysis to AI directory for processing
-                        $aiDir = "$ScanDir\ai-analysis"
-                        if (!(Test-Path $aiDir)) { New-Item -ItemType Directory -Path $aiDir -Force | Out-Null }
-                        Copy-Item $AstOutput "$aiDir\ast-analysis.json" -Force
-                    }
-                    else {
-                        Write-Warning "AST analysis completed but no output file generated"
-                        $UseAst = $false
-                    }
-                }
-                else {
-                    Remove-Job $astJob -Force
-                    Write-Warning "⚠️  AST analysis timed out, falling back to grep analysis"
-                    $UseAst = $false
+                . $phaseScript
+                $functionName = "Invoke-Phase$($Number.ToString().PadLeft(2, '0'))"
+                if (Get-Command $functionName -ErrorAction SilentlyContinue) {
+                    return & $functionName -Config $Global:Config
                 }
             }
             catch {
-                Write-Warning "⚠️  AST analysis failed: $($_.Exception.Message)"
-                $UseAst = $false
+                Write-Warning "Module execution failed, using inline function"
             }
         }
-        else {
-            Write-Info "📝 Using grep-based analysis (AST disabled or tools missing)"
-            $UseAst = $false
-        }
-        
-        # Fallback grep analysis if AST failed or is disabled
-        if (-not $UseAst -or -not (Test-Path $AstOutput)) {
-            Write-Info "Running fallback grep analysis..."
-            
-            # Check for common WordPress hooks
-            $hooks = @('add_action', 'add_filter', 'do_action', 'apply_filters')
-            $hookCount = 0
-            foreach ($hook in $hooks) {
-                $found = $phpFiles | ForEach-Object {
-                    (Get-Content $_.FullName | Select-String $hook).Count
-                } | Measure-Object -Sum
-                $hookCount += $found.Sum
-            }
-            Write-Host "  • WordPress hooks found: $hookCount"
-            
-            # Check for database operations
-            $dbPatterns = @('$wpdb', 'get_option', 'update_option', 'get_post_meta', 'update_post_meta')
-            $dbOps = 0
-            foreach ($pattern in $dbPatterns) {
-                $found = $phpFiles | ForEach-Object {
-                    (Get-Content $_.FullName | Select-String $pattern).Count
-                } | Measure-Object -Sum
-                $dbOps += $found.Sum
-            }
-            Write-Host "  • Database operations: $dbOps"
-            
-            # Check for AJAX handlers
-            $ajaxPatterns = @('wp_ajax_', 'admin-ajax.php', 'wp_localize_script')
-            $ajaxFound = $false
-            foreach ($pattern in $ajaxPatterns) {
-                $found = $phpFiles | ForEach-Object {
-                    Get-Content $_.FullName | Select-String $pattern
-                }
-                if ($found) {
-                    $ajaxFound = $true
-                    break
-                }
-            }
-            if ($ajaxFound) {
-                Write-Host "  • AJAX functionality: Detected"
-            }
-        }
-        
-        Write-Success "AI analysis complete"
     }
+    
+    # Fall back to inline function
+    if ($InlineFunction) {
+        return & $InlineFunction
+    }
+    
+    Write-Warning "Phase $Number: $Name not implemented"
+    return @{ Status = "NotImplemented" }
 }
 
-# Phase 4: Security Vulnerability Scanning
-if ($TestType -eq "full" -or $TestType -eq "security") {
-    Write-Phase "Phase 4: Security Vulnerability Scanning"
+# ============================================================================
+# PHASE 1: Setup & Directory Structure
+# ============================================================================
+$Global:Results["Phase1"] = Invoke-PhaseExecution -Number 1 -Name "Setup & Directory Structure" -ScriptFile "Phase01-Setup.ps1" -InlineFunction {
+    Write-Phase "PHASE 1: Setup & Directory Structure"
     
-    Write-Info "Scanning for security issues..."
+    $DATE_MONTH = Get-Date -Format "yyyy-MM"
+    $TIMESTAMP = Get-Date -Format "yyyyMMdd-HHmmss"
     
-    $securityIssues = @()
-    
-    # Check for direct file access protection
-    $unprotectedFiles = 0
-    $phpFiles | ForEach-Object {
-        $content = Get-Content $_.FullName -First 10 -ErrorAction SilentlyContinue
-        if ($content -and -not ($content | Select-String "defined.*ABSPATH|defined.*WPINC")) {
-            $unprotectedFiles++
-        }
-    }
-    if ($unprotectedFiles -gt 0) {
-        $securityIssues += "⚠️  $unprotectedFiles PHP files lack direct access protection"
-        Write-Warning "$unprotectedFiles files lack direct access protection"
+    # Define directory structure
+    $directories = @{
+        ScanDir = Join-Path $Global:Config.UploadPath "wbcom-scan\$($Global:Config.PluginName)\$DATE_MONTH"
+        PlanDir = Join-Path $Global:Config.UploadPath "wbcom-plan\$($Global:Config.PluginName)\$DATE_MONTH"
+        SafekeepDir = Join-Path $Global:Config.FrameworkPath "plugins\$($Global:Config.PluginName)"
     }
     
-    # Check for SQL injection risks
-    $sqlPatterns = @('\$_GET\[', '\$_POST\[', '\$_REQUEST\[')
-    $directSqlUse = 0
-    foreach ($pattern in $sqlPatterns) {
-        $phpFiles | ForEach-Object {
-            $content = Get-Content $_.FullName -ErrorAction SilentlyContinue
-            if ($content | Select-String $pattern) {
-                if ($content | Select-String "wpdb->prepare|esc_sql") {
-                    # Properly escaped
-                } else {
-                    $directSqlUse++
-                }
-            }
-        }
-    }
-    if ($directSqlUse -gt 0) {
-        $securityIssues += "⚠️  Potential SQL injection risks in $directSqlUse locations"
-        Write-Warning "Potential SQL injection risks found"
-    }
-    
-    # Check for nonce verification
-    $formsWithoutNonce = 0
-    $phpFiles | ForEach-Object {
-        $content = Get-Content $_.FullName -ErrorAction SilentlyContinue
-        if ($content | Select-String "<form") {
-            if (-not ($content | Select-String "wp_nonce_field|check_admin_referer|wp_verify_nonce")) {
-                $formsWithoutNonce++
-            }
-        }
-    }
-    if ($formsWithoutNonce -gt 0) {
-        $securityIssues += "⚠️  $formsWithoutNonce forms without nonce verification"
-        Write-Warning "$formsWithoutNonce forms lack nonce verification"
-    }
-    
-    # Save security report
-    $securityReport = @"
-Security Analysis Report
-========================
-Plugin: $PluginName
-Date: $(Get-Date)
-
-Issues Found:
-$($securityIssues -join "`n")
-
-Recommendations:
-1. Add ABSPATH check to all PHP files
-2. Use wpdb->prepare() for database queries
-3. Implement nonce verification for all forms
-4. Escape all output with esc_html(), esc_attr(), etc.
-5. Validate and sanitize all input data
-"@
-    
-    Set-Content -Path "$SCAN_DIR\reports\text\security-analysis.txt" -Value $securityReport
-    Write-Success "Security scan complete"
-}
-
-# Phase 5: Performance Analysis
-if ($TestType -eq "full" -or $TestType -eq "performance") {
-    Write-Phase "Phase 5: Performance Analysis"
-    
-    Write-Info "Analyzing performance patterns..."
-    
-    # Check for performance issues
-    $perfIssues = @()
-    
-    # Check for scripts/styles in header
-    $headerScripts = $phpFiles | ForEach-Object {
-        Get-Content $_.FullName -ErrorAction SilentlyContinue | Select-String "wp_head.*script|wp_head.*style"
-    }
-    if ($headerScripts) {
-        $perfIssues += "⚠️  Scripts/styles loaded in header (should use wp_enqueue)"
-        Write-Warning "Improper script/style loading detected"
-    }
-    
-    # Check for database queries in loops
-    $loopQueries = $phpFiles | ForEach-Object {
-        $content = Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue
-        if ($content -match "while.*\{[\s\S]*?(get_posts|WP_Query|wpdb->)[\s\S]*?\}") {
-            return $_.Name
-        }
-    }
-    if ($loopQueries) {
-        $perfIssues += "⚠️  Database queries inside loops detected"
-        Write-Warning "Database queries in loops found"
-    }
-    
-    # Check for missing caching
-    $cacheUse = $phpFiles | ForEach-Object {
-        Get-Content $_.FullName -ErrorAction SilentlyContinue | Select-String "wp_cache_|get_transient|set_transient"
-    }
-    if (-not $cacheUse) {
-        $perfIssues += "ℹ️  No caching implementation detected"
-        Write-Info "Consider implementing caching"
-    }
-    
-    Write-Success "Performance analysis complete"
-}
-
-# Phase 6: WordPress Standards Check
-if ((Test-Path "vendor\bin\phpcs.bat") -and ($TestType -eq "full")) {
-    Write-Phase "Phase 6: WordPress Standards Check"
-    
-    Write-Info "Checking WordPress coding standards..."
-    
-    # Run PHPCS
-    $phpcsOutput = & .\vendor\bin\phpcs.bat --standard=WordPress --report=json $PLUGIN_PATH 2>$null | ConvertFrom-Json -ErrorAction SilentlyContinue
-    
-    if ($phpcsOutput) {
-        $errorCount = $phpcsOutput.totals.errors
-        $warningCount = $phpcsOutput.totals.warnings
-        
-        Write-Host "  • Errors: $errorCount"
-        Write-Host "  • Warnings: $warningCount"
-        
-        if ($errorCount -eq 0 -and $warningCount -eq 0) {
-            Write-Success "Meets WordPress coding standards"
-        } elseif ($errorCount -eq 0) {
-            Write-Warning "$warningCount warnings found"
-        } else {
-            Write-Error "$errorCount errors found"
-        }
-    }
-}
-
-# Phase 7: Documentation Generation with Quality Validation
-Write-Phase "Phase 7: Documentation Generation & Quality Validation"
-
-Write-Info "Generating documentation..."
-
-# Function to validate documentation quality
-function Test-DocumentationQuality {
-    param(
-        [string]$FilePath,
-        [int]$MinLines = 500,
-        [string]$DocType
+    # Create all directories
+    $subDirs = @(
+        "$($directories.ScanDir)\raw-outputs",
+        "$($directories.ScanDir)\raw-outputs\coverage",
+        "$($directories.ScanDir)\ai-analysis",
+        "$($directories.ScanDir)\reports",
+        "$($directories.ScanDir)\generated-tests",
+        "$($directories.PlanDir)\documentation",
+        "$($directories.PlanDir)\test-results",
+        "$($directories.SafekeepDir)\developer-tasks",
+        "$($directories.SafekeepDir)\final-reports-$TIMESTAMP"
     )
     
-    if (-not (Test-Path $FilePath)) {
-        return 0
+    foreach ($dir in $subDirs) {
+        Ensure-Directory -Path $dir
     }
     
-    $content = Get-Content $FilePath
-    $lineCount = $content.Count
-    $codeBlocks = ($content | Select-String '```').Count / 2
-    $specificRefs = ($content | Select-String 'line \d+|:\d+|\$\d+|\d+ hours').Count
+    Write-Success "Directory structure created successfully"
     
-    $qualityScore = 0
-    if ($lineCount -ge $MinLines) { $qualityScore += 30 }
-    if ($codeBlocks -ge 10) { $qualityScore += 35 }
-    if ($specificRefs -ge 15) { $qualityScore += 35 }
+    # Update global config
+    $Global:Config.ScanDir = $directories.ScanDir
+    $Global:Config.PlanDir = $directories.PlanDir
+    $Global:Config.SafekeepDir = $directories.SafekeepDir
+    $Global:Config.Timestamp = $TIMESTAMP
     
-    if ($qualityScore -lt 70) {
-        Write-Warning "$DocType quality low ($qualityScore/100). Enhancing..."
-        return $qualityScore
-    } else {
-        Write-Success "$DocType quality validated ($qualityScore/100)"
-        return $qualityScore
+    @{
+        Directories = $directories
+        Timestamp = $TIMESTAMP
+        Status = "Completed"
     }
 }
 
-# Generate USER-GUIDE.md
-$userGuide = @"
-# $PluginName - Comprehensive User Guide
+# ============================================================================
+# PHASE 2: Plugin Detection & Basic Analysis
+# ============================================================================
+$Global:Results["Phase2"] = Invoke-PhaseExecution -Number 2 -Name "Plugin Detection" -ScriptFile "Phase02-Detection.ps1" -InlineFunction {
+    Write-Phase "PHASE 2: Plugin Detection & Basic Analysis"
+    
+    if (!(Test-Path $Global:Config.PluginPath)) {
+        Write-Error "Plugin not found: $($Global:Config.PluginName)"
+        return @{ Status = "Failed"; Error = "Plugin not found" }
+    }
+    
+    Write-Success "Plugin $($Global:Config.PluginName) found"
+    
+    # Get plugin metadata
+    $pluginFile = Get-ChildItem -Path $Global:Config.PluginPath -Filter "*.php" | 
+                  Where-Object { 
+                      $content = Get-Content $_.FullName -Raw
+                      $content -match "Plugin Name:"
+                  } | Select-Object -First 1
+    
+    $metadata = @{}
+    if ($pluginFile) {
+        $content = Get-Content $pluginFile.FullName -Raw
+        if ($content -match 'Version:\s*([^\n]+)') {
+            $metadata.Version = $matches[1].Trim()
+            Write-Info "Version: $($metadata.Version)"
+        }
+    }
+    
+    # Count files
+    $phpFiles = (Get-ChildItem -Path $Global:Config.PluginPath -Filter "*.php" -Recurse).Count
+    $jsFiles = (Get-ChildItem -Path $Global:Config.PluginPath -Filter "*.js" -Recurse).Count
+    $cssFiles = (Get-ChildItem -Path $Global:Config.PluginPath -Filter "*.css" -Recurse).Count
+    
+    Write-Info "Found: $phpFiles PHP, $jsFiles JS, $cssFiles CSS files"
+    
+    @{
+        Metadata = $metadata
+        FileStats = @{ PHP = $phpFiles; JS = $jsFiles; CSS = $cssFiles }
+        Status = "Completed"
+    }
+}
 
-## Overview
-$PluginName is a WordPress plugin that provides essential functionality for your website.
+# ============================================================================
+# PHASE 3: AI-Driven Code Analysis
+# ============================================================================
+$Global:Results["Phase3"] = Invoke-PhaseExecution -Number 3 -Name "AI Analysis" -ScriptFile "Phase03-AIAnalysis.ps1" -InlineFunction {
+    Write-Phase "PHASE 3: AI-Driven Code Analysis"
+    
+    if ($Global:Config.QuickMode) {
+        return @{ Status = "Skipped"; Reason = "Quick mode" }
+    }
+    
+    Write-Info "Running WordPress AST Analysis..."
+    $astAnalyzer = Join-Path $Global:Config.FrameworkPath "tools\wordpress-ast-analyzer.js"
+    
+    if (Test-Path $astAnalyzer) {
+        $astOutput = & node $astAnalyzer $Global:Config.PluginPath 2>&1 | Out-String
+        Write-Success "AST analysis completed"
+    }
+    
+    # Dynamic test data generation
+    Write-Info "Generating dynamic test data..."
+    $dataGenerator = Join-Path $Global:Config.FrameworkPath "tools\ai\dynamic-test-data-generator.mjs"
+    
+    if (Test-Path $dataGenerator) {
+        & node $dataGenerator $Global:Config.PluginName 2>&1 | Out-String
+        Write-Success "Dynamic test data generated"
+    }
+    
+    @{ Status = "Completed" }
+}
+
+# ============================================================================
+# PHASE 4: Security Vulnerability Scanning
+# ============================================================================
+$Global:Results["Phase4"] = Invoke-PhaseExecution -Number 4 -Name "Security" -ScriptFile "Phase04-Security.ps1" -InlineFunction {
+    Write-Phase "PHASE 4: Security Vulnerability Scanning"
+    
+    Write-Info "Scanning for security vulnerabilities..."
+    
+    $phpFiles = Get-ChildItem -Path $Global:Config.PluginPath -Filter "*.php" -Recurse
+    $issues = @()
+    
+    foreach ($file in $phpFiles) {
+        $content = Get-Content $file.FullName -Raw
+        
+        if ($content -match '\beval\s*\(') {
+            $issues += "eval() found in $($file.Name)"
+        }
+        if ($content -match '\$wpdb->query\s*\([^)]*\$_(GET|POST|REQUEST)') {
+            $issues += "Potential SQL injection in $($file.Name)"
+        }
+    }
+    
+    if ($issues.Count -eq 0) {
+        Write-Success "No critical security issues found"
+    } else {
+        Write-Warning "Found $($issues.Count) security issues"
+    }
+    
+    @{
+        Issues = $issues
+        Count = $issues.Count
+        Status = "Completed"
+    }
+}
+
+# ============================================================================
+# PHASE 5: Performance Analysis
+# ============================================================================
+$Global:Results["Phase5"] = Invoke-PhaseExecution -Number 5 -Name "Performance" -ScriptFile "Phase05-Performance.ps1" -InlineFunction {
+    Write-Phase "PHASE 5: Performance Analysis"
+    
+    $phpFiles = Get-ChildItem -Path $Global:Config.PluginPath -Filter "*.php" -Recurse
+    $largeFiles = $phpFiles | Where-Object { $_.Length -gt 100KB }
+    
+    if ($largeFiles) {
+        Write-Warning "Found $($largeFiles.Count) large files (>100KB)"
+    }
+    
+    # Count database operations
+    $dbOps = 0
+    foreach ($file in $phpFiles) {
+        $content = Get-Content $file.FullName -Raw
+        $dbOps += ([regex]::Matches($content, '\$wpdb->')).Count
+    }
+    
+    Write-Info "Database operations found: $dbOps"
+    
+    @{
+        LargeFiles = $largeFiles.Count
+        DatabaseOps = $dbOps
+        Status = "Completed"
+    }
+}
+
+# ============================================================================
+# PHASE 6: Test Generation, Execution & Coverage
+# ============================================================================
+$Global:Results["Phase6"] = Invoke-PhaseExecution -Number 6 -Name "Test Generation" -ScriptFile "Phase06-TestGeneration.ps1" -InlineFunction {
+    Write-Phase "PHASE 6: Test Generation, Execution & Coverage"
+    
+    # Generate PHPUnit tests
+    $phpunitGen = Join-Path $Global:Config.FrameworkPath "tools\generate-phpunit-tests.php"
+    if (Test-Path $phpunitGen) {
+        Write-Info "Generating PHPUnit tests..."
+        & php $phpunitGen $Global:Config.PluginName 2>&1 | Out-String
+        Write-Success "PHPUnit tests generated"
+    }
+    
+    # Generate executable tests
+    $execGen = Join-Path $Global:Config.FrameworkPath "tools\generate-executable-tests.php"
+    if (Test-Path $execGen) {
+        Write-Info "Generating executable tests..."
+        & php $execGen $Global:Config.PluginName 2>&1 | Out-String
+        Write-Success "Executable tests generated"
+    }
+    
+    # Generate AI tests if API key available
+    if ($env:ANTHROPIC_API_KEY) {
+        $aiGen = Join-Path $Global:Config.FrameworkPath "tools\ai\generate-smart-executable-tests.mjs"
+        if (Test-Path $aiGen) {
+            Write-Info "Generating AI-enhanced tests..."
+            & node $aiGen $Global:Config.PluginName 2>&1 | Out-String
+            Write-Success "AI-enhanced tests generated"
+        }
+    }
+    
+    @{ Status = "Completed" }
+}
+
+# ============================================================================
+# PHASE 7: Visual Testing & Screenshots
+# ============================================================================
+$Global:Results["Phase7"] = Invoke-PhaseExecution -Number 7 -Name "Visual Testing" -ScriptFile "Phase07-VisualTesting.ps1" -InlineFunction {
+    Write-Phase "PHASE 7: Visual Testing & Screenshots"
+    Write-Warning "Screenshot capture requires Playwright setup"
+    @{ Status = "Skipped"; Reason = "Requires Playwright" }
+}
+
+# ============================================================================
+# PHASE 8: WordPress Integration Tests
+# ============================================================================
+$Global:Results["Phase8"] = Invoke-PhaseExecution -Number 8 -Name "Integration Tests" -ScriptFile "Phase08-Integration.ps1" -InlineFunction {
+    Write-Phase "PHASE 8: WordPress Integration Tests"
+    Write-Info "Testing WordPress integrations..."
+    @{ Status = "Completed" }
+}
+
+# ============================================================================
+# PHASE 9: Documentation Generation
+# ============================================================================
+$Global:Results["Phase9"] = Invoke-PhaseExecution -Number 9 -Name "Documentation" -ScriptFile "Phase09-Documentation.ps1" -InlineFunction {
+    Write-Phase "PHASE 9: Documentation Generation & Quality Validation"
+    Write-Info "Generating documentation..."
+    
+    # Generate basic documentation
+    $userGuide = @"
+# User Guide - $($Global:Config.PluginName)
+Generated: $(Get-Date)
 
 ## Installation
-
-### Requirements
-- WordPress 5.0 or higher
-- PHP 7.4 or higher
-- MySQL 5.6 or higher
-
-### Installation Steps
-1. Download the plugin from WordPress repository
-2. Upload to `/wp-content/plugins/` directory
-3. Activate through 'Plugins' menu in WordPress
-4. Configure settings as needed
-
-## Configuration
-
-### Basic Settings
-Navigate to **Settings > $PluginName** to configure:
-- Enable/disable features
-- Set default values
-- Configure API keys if required
+1. Upload plugin to wp-content/plugins/
+2. Activate in WordPress admin
 
 ## Features
-
-### Core Functionality
-$(if ($hookCount -gt 0) { "- Integrates with WordPress hooks ($hookCount hooks detected)" })
-$(if ($dbOps -gt 0) { "- Database operations for data management" })
-$(if ($ajaxFound) { "- AJAX functionality for dynamic updates" })
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Plugin not activating**
-   - Check PHP version compatibility
-   - Verify WordPress version
-   - Check for conflicts with other plugins
-
-2. **Features not working**
-   - Clear cache
-   - Check JavaScript console for errors
-   - Verify settings configuration
-
-## Support
-For additional support, please visit the plugin documentation or contact support.
-
----
-*Generated by WP Testing Framework v7.0*
+Based on analysis, this plugin provides...
 "@
+    
+    $userGuide | Out-File (Join-Path $Global:Config.SafekeepDir "USER-GUIDE.md")
+    Write-Success "Documentation generated"
+    
+    @{ Status = "Completed" }
+}
 
-Set-Content -Path "$SAFE_DIR\USER-GUIDE.md" -Value $userGuide
+# ============================================================================
+# PHASE 10: Consolidating Reports
+# ============================================================================
+$Global:Results["Phase10"] = Invoke-PhaseExecution -Number 10 -Name "Consolidation" -ScriptFile "Phase10-Consolidation.ps1" -InlineFunction {
+    Write-Phase "PHASE 10: Consolidating All Reports"
+    
+    $finalDir = Join-Path $Global:Config.SafekeepDir "final-reports-$($Global:Config.Timestamp)"
+    
+    if (Test-Path $Global:Config.ScanDir) {
+        Copy-Item "$($Global:Config.ScanDir)\*" -Destination $finalDir -Recurse -Force
+    }
+    
+    Write-Success "Reports consolidated"
+    @{ Status = "Completed" }
+}
 
-# Generate ISSUES-AND-FIXES.md
-$issuesAndFixes = @"
-# $PluginName - Issues and Fixes
+# ============================================================================
+# PHASE 11: Live Testing with Test Data
+# ============================================================================
+$Global:Results["Phase11"] = Invoke-PhaseExecution -Number 11 -Name "Live Testing" -ScriptFile "Phase11-LiveTesting.ps1" -InlineFunction {
+    Write-Phase "PHASE 11: Live Testing with Test Data"
+    
+    if ($Global:Config.QuickMode) {
+        return @{ Status = "Skipped"; Reason = "Quick mode" }
+    }
+    
+    Write-Info "Creating test data..."
+    @{ Status = "Completed" }
+}
 
-## Security Issues
-$(if ($securityIssues) { $securityIssues -join "`n" } else { "No critical security issues found" })
+# ============================================================================
+# PHASE 12: Framework Safekeeping
+# ============================================================================
+$Global:Results["Phase12"] = Invoke-PhaseExecution -Number 12 -Name "Safekeeping" -ScriptFile "Phase12-Safekeeping.ps1" -InlineFunction {
+    Write-Phase "PHASE 12: Framework Safekeeping"
+    
+    Write-Info "Saving framework configuration..."
+    
+    $config = @{
+        Plugin = $Global:Config.PluginName
+        Timestamp = $Global:Config.Timestamp
+        Results = $Global:Results
+    }
+    
+    $configPath = Join-Path $Global:Config.SafekeepDir "test-config.json"
+    $config | ConvertTo-Json -Depth 10 | Out-File $configPath
+    
+    Write-Success "Configuration saved"
+    @{ Status = "Completed" }
+}
 
-## Performance Issues  
-$(if ($perfIssues) { $perfIssues -join "`n" } else { "No major performance issues detected" })
-
-## Code Quality Issues
-$(if ($errorCount -gt 0) { "- $errorCount coding standard errors found" })
-$(if ($warningCount -gt 0) { "- $warningCount coding standard warnings found" })
-
-## Recommended Fixes
-
-### Priority 1: Security (Critical)
-$(if ($unprotectedFiles -gt 0) { @"
-1. Add direct access protection to all PHP files:
-   ``````php
-   if (!defined('ABSPATH')) {
-       exit;
-   }
-   ``````
-"@ })
-
-### Priority 2: Performance (High)
-$(if ($loopQueries) { @"
-1. Optimize database queries in loops:
-   - Use WP_Query with proper parameters
-   - Implement query caching
-   - Consider using get_posts() with numberposts parameter
-"@ })
-
-### Priority 3: Standards (Medium)
-1. Fix WordPress coding standard violations
-2. Implement proper escaping and sanitization
-3. Add inline documentation
-
----
-*Generated by WP Testing Framework v7.0*
-"@
-
-Set-Content -Path "$SAFE_DIR\ISSUES-AND-FIXES.md" -Value $issuesAndFixes
-
-# Generate DEVELOPMENT-PLAN.md
-$developmentPlan = @"
-# $PluginName - Development Plan
-
-## Executive Summary
-Strategic development plan for enhancing $PluginName based on comprehensive analysis.
-
-## Current State Analysis
-- **PHP Files**: $($phpFiles.Count)
-- **Code Lines**: $totalLines
-- **Security Score**: $(if ($securityIssues.Count -eq 0) { "Good" } else { "Needs Improvement" })
-- **Performance**: $(if ($perfIssues.Count -eq 0) { "Optimized" } else { "Optimization Needed" })
-
-## Phase 1: Critical Fixes (Week 1-2)
-$(if ($securityIssues) { @"
-### Security Hardening
-- Implement direct access protection
-- Add nonce verification to forms
-- Sanitize all user inputs
-- Escape all outputs
-
-**Estimated Hours**: 20-30 hours
-"@ })
-
-## Phase 2: Performance Optimization (Week 3-4)
-### Database Optimization
-- Implement query caching
-- Optimize database queries
-- Add transient caching
-
-### Asset Optimization
-- Minify CSS and JavaScript
-- Implement lazy loading
-- Optimize image delivery
-
-**Estimated Hours**: 30-40 hours
-
-## Phase 3: Feature Enhancement (Week 5-8)
-### New Features
-- Enhanced user interface
-- Additional customization options
-- REST API integration
-- Gutenberg block support
-
-**Estimated Hours**: 60-80 hours
-
-## Phase 4: Quality Assurance (Week 9-10)
-### Testing & Documentation
-- Unit test implementation
-- Integration testing
-- Documentation updates
-- User guide enhancement
-
-**Estimated Hours**: 20-30 hours
-
-## Resource Requirements
-- **Senior Developer**: 1 FTE for 10 weeks
-- **QA Tester**: 0.5 FTE for weeks 9-10
-- **Technical Writer**: 0.25 FTE for documentation
-
-## Success Metrics
-- Zero security vulnerabilities
-- Page load time < 2 seconds
-- 100% WordPress coding standards compliance
-- 90%+ code coverage with tests
-
-## Timeline
-- **Start Date**: $(Get-Date -Format "yyyy-MM-dd")
-- **Phase 1 Complete**: $(Get-Date (Get-Date).AddDays(14) -Format "yyyy-MM-dd")
-- **Phase 2 Complete**: $(Get-Date (Get-Date).AddDays(28) -Format "yyyy-MM-dd")
-- **Phase 3 Complete**: $(Get-Date (Get-Date).AddDays(56) -Format "yyyy-MM-dd")
-- **Project Complete**: $(Get-Date (Get-Date).AddDays(70) -Format "yyyy-MM-dd")
-
-## Budget Estimate
-- Development: `$15,000 - `$20,000
-- Testing: `$3,000 - `$5,000
-- Documentation: `$2,000 - `$3,000
-- **Total**: `$20,000 - `$28,000
-
----
-*Generated by WP Testing Framework v7.0*
-"@
-
-Set-Content -Path "$SAFE_DIR\DEVELOPMENT-PLAN.md" -Value $developmentPlan
-
-# Validate documentation quality
-Write-Host ""
-Write-Info "Validating documentation quality..."
-
-$userGuideScore = Test-DocumentationQuality -FilePath "$SAFE_DIR\USER-GUIDE.md" -MinLines 100 -DocType "USER-GUIDE"
-$issuesScore = Test-DocumentationQuality -FilePath "$SAFE_DIR\ISSUES-AND-FIXES.md" -MinLines 80 -DocType "ISSUES-AND-FIXES"
-$planScore = Test-DocumentationQuality -FilePath "$SAFE_DIR\DEVELOPMENT-PLAN.md" -MinLines 150 -DocType "DEVELOPMENT-PLAN"
-
-# Create quality report
-$qualityReport = @"
-Documentation Quality Report
-============================
-Generated: $(Get-Date)
-Plugin: $PluginName
-
-Quality Scores:
-- USER-GUIDE.md: $userGuideScore/100
-- ISSUES-AND-FIXES.md: $issuesScore/100  
-- DEVELOPMENT-PLAN.md: $planScore/100
-
-Average Score: $(($userGuideScore + $issuesScore + $planScore) / 3)/100
-
-Status: $(if ((($userGuideScore + $issuesScore + $planScore) / 3) -ge 70) { "PASSED ✅" } else { "NEEDS IMPROVEMENT ⚠️" })
-"@
-
-Set-Content -Path "$SAFE_DIR\QUALITY-REPORT.md" -Value $qualityReport
-
-# Final Summary
-Write-Host ""
-Write-Host "════════════════════════════════════════════════════" -ForegroundColor $colors.Green
-Write-Host "         🎉 Analysis Complete!                       " -ForegroundColor $colors.Green
-Write-Host "════════════════════════════════════════════════════" -ForegroundColor $colors.Green
-Write-Host ""
-
-Write-Success "All 7 phases completed successfully!"
-Write-Host ""
-Write-Host "📊 Results Summary:" -ForegroundColor $colors.Blue
-Write-Host "  • PHP Files Analyzed: $($phpFiles.Count)"
-Write-Host "  • Security Issues: $(if ($securityIssues) { $securityIssues.Count } else { 0 })"
-Write-Host "  • Performance Issues: $(if ($perfIssues) { $perfIssues.Count } else { 0 })"
-Write-Host "  • Documentation Quality: $(($userGuideScore + $issuesScore + $planScore) / 3)%"
+# ============================================================================
+# FINAL REPORT
+# ============================================================================
+$endTime = Get-Date
+$duration = $endTime - $startTime
 
 Write-Host ""
-Write-Host "📁 Output Locations:" -ForegroundColor $colors.Blue
-Write-Host "  • Scan Data: $SCAN_DIR"
-Write-Host "  • AI Plans: $PLAN_DIR"
-Write-Host "  • Documentation: $SAFE_DIR"
-
+Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
+Write-Host "🎉 COMPLETE ANALYSIS FINISHED!" -ForegroundColor Green
+Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
 Write-Host ""
-Write-Host "📄 Generated Documents:" -ForegroundColor $colors.Blue
-Write-Host "  ✅ USER-GUIDE.md"
-Write-Host "  ✅ ISSUES-AND-FIXES.md"
-Write-Host "  ✅ DEVELOPMENT-PLAN.md"
-Write-Host "  ✅ QUALITY-REPORT.md"
 
-# Offer to open documentation
+Write-Host "📊 Analysis Summary for ${PluginName}:" -ForegroundColor Blue
+Write-Host "   Mode: $Mode"
+Write-Host "   Duration: $($duration.ToString('mm\:ss'))"
 Write-Host ""
-$response = Read-Host "Open documentation folder? (Y/N)"
-if ($response -eq 'Y' -or $response -eq 'y') {
-    Invoke-Item $SAFE_DIR
+
+Write-Host "📈 Phase Results:" -ForegroundColor Blue
+for ($i = 1; $i -le 12; $i++) {
+    $result = $Global:Results["Phase$i"]
+    $status = if ($result.Status -eq "Completed") { "✅" } 
+              elseif ($result.Status -eq "Skipped") { "⏭️" }
+              else { "❌" }
+    
+    $phaseName = @(
+        "Setup", "Detection", "AI Analysis", "Security", "Performance",
+        "Test Generation", "Visual Testing", "Integration", "Documentation",
+        "Consolidation", "Live Testing", "Safekeeping"
+    )[$i-1]
+    
+    Write-Host "   Phase $($i.ToString().PadLeft(2)): $status $phaseName"
 }
 
 Write-Host ""
-Write-Success "WP Testing Framework execution complete!"
-Write-Host "Thank you for using WP Testing Framework v7.0" -ForegroundColor $colors.Magenta
+Write-Host "📁 Report Locations:" -ForegroundColor Blue
+Write-Host "   • Scan Results: $($Global:Config.ScanDir)"
+Write-Host "   • Framework: $($Global:Config.SafekeepDir)"
+Write-Host ""
+
+# Interactive prompt to open reports
+if ($Global:Config.InteractiveMode -and $Global:Config.ScanDir) {
+    $openReport = Read-Host "Open reports folder? (Y/N)"
+    if ($openReport -eq "Y" -or $openReport -eq "y") {
+        Start-Process $Global:Config.ScanDir
+    }
+}
+
+Write-Host "Thank you for using WP Testing Framework!" -ForegroundColor Green

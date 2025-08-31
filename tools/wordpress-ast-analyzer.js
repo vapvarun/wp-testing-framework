@@ -571,6 +571,11 @@ function checkWordPressClasses(node, analysis) {
  * Check for special WordPress hooks
  */
 function checkSpecialHooks(hookName, node, analysis) {
+    // Ensure hookName is a string before using string methods
+    if (!hookName || typeof hookName !== 'string') {
+        return;
+    }
+    
     // Admin hooks
     if (hookName.startsWith('admin_')) {
         // Track admin functionality

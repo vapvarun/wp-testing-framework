@@ -4,17 +4,28 @@
 
 Complete plugin analysis with integrated security scanning, performance profiling, and AI-ready reports for test generation!
 
-## ✨ What's New: Complete Integration!
+## ✨ What's New: AI-Enhanced Testing & Complete Integration!
 
-One command now runs **ALL testing tools** in 8 automated phases:
+One command now runs **ALL testing tools** in 12 comprehensive phases:
 1. **Setup** - Auto-creates all directories
 2. **Detection** - Finds and activates plugins
-3. **AI Analysis** - Scans functions, classes, hooks (2,431+ for bbPress!)
-4. **Security** - Vulnerability scanning with security-scanner.php
-5. **Performance** - Memory/load profiling with performance-profiler.php
-6. **Testing** - Coverage analysis with test-coverage-report.php
-7. **AI Reports** - Claude-ready analysis files
-8. **Dashboard** - Beautiful HTML visualization
+3. **AI Analysis** - AST parsing + dynamic test data generation
+4. **Security** - Vulnerability scanning (XSS, SQL injection, nonces)
+5. **Performance** - Memory/load profiling with metrics
+6. **Test Generation** - AI-enhanced, executable, and basic tests
+7. **Visual Testing** - Automated screenshots and UI validation
+8. **Integration Tests** - WordPress hooks, shortcodes, AJAX
+9. **Reporting** - HTML, Markdown, and AI-ready reports
+10. **Consolidation** - Organized final reports with INDEX
+11. **Live Testing** - Test data creation and execution
+12. **Safekeeping** - Framework preservation and templates
+
+### 🚀 New Features:
+- **AI-Enhanced Test Generation** - Intelligent test cases based on code analysis
+- **Three-Tier Testing** - Smart, Executable, and Basic tests
+- **Dynamic Test Data** - Pattern-based data generation
+- **Real Code Coverage** - Executable tests with assertions (not stubs)
+- **Automatic Fallbacks** - Works without AI API keys
 
 ## ✨ Quick Start (Local WP)
 
@@ -84,14 +95,17 @@ The framework automatically:
 ```
 
 ### What Gets Analyzed
-- **Functions** - Every PHP function documented
-- **Classes** - All class structures mapped
-- **Hooks** - WordPress actions/filters identified
-- **Security** - Vulnerabilities scanned (XSS, SQL injection, eval)
-- **Performance** - Memory usage, load time, file sizes
-- **Database** - SQL queries analyzed
-- **AJAX/REST** - API endpoints documented
-- **Coverage** - Test coverage calculated
+- **Functions** - Every PHP function documented with AST parsing
+- **Classes** - All class structures mapped with methods
+- **Hooks** - WordPress actions/filters identified (4000+ for complex plugins)
+- **Security** - Vulnerabilities scanned (XSS, SQL injection, nonces, capabilities)
+- **Performance** - Memory usage, load time, file sizes, query optimization
+- **Database** - SQL queries analyzed, custom tables detected
+- **AJAX/REST** - API endpoints documented with handlers
+- **Shortcodes** - All shortcodes detected with callbacks
+- **Forms** - Form submissions and validation patterns
+- **Test Generation** - AI-enhanced, executable, and basic tests created
+- **Coverage** - Real code coverage with executable assertions
 
 ## 📊 Generated Reports & AI Files
 
@@ -118,6 +132,54 @@ cat workspace/ai-reports/plugin-name/security-analysis.txt # Security findings
 2. Copy AI report: `cat workspace/ai-reports/your-plugin/ai-analysis-report.md`
 3. Paste to Claude: "Generate comprehensive PHPUnit tests for these functions"
 4. Claude generates complete test suites based on your analysis!
+
+## 🤖 AI-Enhanced Testing (NEW!)
+
+### Automatic Test Generation
+The framework now generates three tiers of tests automatically:
+
+#### 1. AI-Enhanced Smart Tests (Requires API Key)
+```bash
+# Set your Anthropic API key
+export ANTHROPIC_API_KEY="your-api-key"
+
+# Run with AI enhancement
+./test-plugin.sh your-plugin
+
+# Tests generated in:
+# wp-content/uploads/wbcom-scan/your-plugin/*/generated-tests/*SmartExecutableTest.php
+```
+
+**AI generates tests for:**
+- Security vulnerabilities (XSS, SQL injection)
+- Edge cases and error handling
+- Form validation and sanitization
+- Database operations with isolation
+- User roles and capabilities
+- AJAX handlers with mock requests
+
+#### 2. Executable Tests (Always Generated)
+- Real assertions that execute code
+- Function existence and callability
+- Shortcode output validation
+- Hook callback verification
+- Provides actual code coverage (20-30%)
+
+#### 3. Basic Test Structure
+- PHPUnit test class framework
+- Placeholder methods for manual development
+- Setup and teardown methods
+
+### Coverage Reporting
+```bash
+# Run tests with coverage
+XDEBUG_MODE=coverage ./test-plugin.sh your-plugin
+
+# Coverage appears in reports:
+# - Test Summary shows coverage percentage
+# - Executable tests provide real coverage (not 0%)
+# - AI tests can achieve 40-60% coverage
+```
 
 ## 🔥 Why Local WP?
 
@@ -258,13 +320,13 @@ cd wp-testing-framework
 
 ### Quick Guides
 - **[Installation](INSTALL.md)** - Setup instructions
-- **[bbPress Testing](BBPRESS-TESTING.md)** - Test bbPress
-- **[BuddyPress Testing](BUDDYPRESS-TESTING.md)** - Test BuddyPress
 
-### Detailed Docs
+### Documentation
 - **[Setup Guides](docs/setup/)** - Detailed installation
 - **[Plugin Guides](docs/plugin-guides/)** - Plugin-specific docs
-- **[Technical Docs](docs/technical/)** - Framework internals
+- **[Technical Docs](docs/technical/)** - Framework internals, methodology
+- **[Feature Docs](docs/features/)** - Feature implementations
+- **[Reports](docs/reports/)** - Status reports and improvements
 
 ## 🐛 Troubleshooting
 

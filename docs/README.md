@@ -1,82 +1,43 @@
-# WP Testing Framework - Documentation Index
+# WordPress Testing Framework Documentation
 
 ## 📁 Documentation Structure
 
-```
-docs/
-├── README.md                  # This index
-├── QUICK-START.md            # 5-minute quick start
-├── MASTER-INDEX.md           # Complete framework index
-├── framework/                # Framework documentation
-│   └── FRAMEWORK-GUIDE.md    # Core framework guide
-├── architecture/             # Architecture & design
-│   ├── FRAMEWORK-STRUCTURE.md
-│   ├── FILE-INDEX.md
-│   ├── RESTRUCTURE-REPORT.md
-│   └── SCAN-SUMMARY.md
-├── guides/                   # User guides
-│   ├── UNIVERSAL-TESTING-GUIDE.md
-│   ├── TESTING-GUIDE.md
-│   └── REPORT-ORGANIZATION.md
-└── api/                      # API documentation
-```
+### 📋 Technical Documentation
+Located in `docs/technical/`:
+- **TESTING-METHODOLOGY.md** - Complete testing methodology and approach
+- **TESTING-WORKFLOW.md** - Detailed workflow documentation
 
-## 🔌 Plugin Documentation
+### 🚀 Features Documentation
+Located in `docs/features/`:
+- **AUTO-LOGIN-FEATURE.md** - Auto-login implementation details
+- **WORDPRESS-AST-IMPROVEMENTS.md** - AST parser improvements and enhancements
 
-Each plugin has its own documentation:
+### 📊 Reports & Status
+Located in `docs/reports/`:
+- **FRAMEWORK-STATUS-2025.md** - Current framework status and roadmap
+- **IMPROVEMENT-RESULTS.md** - Framework improvement results
+- **AUTOMATED-TESTING-SUCCESS.md** - Automated testing achievements
 
-```
-plugins/
-└── [plugin-name]/
-    └── docs/
-        ├── README.md         # Plugin test overview
-        ├── TESTING-GUIDE.md  # How to test this plugin
-        └── ...
-```
+### 🔧 Setup Guides
+Located in `docs/setup/`:
+- Platform-specific installation guides
+- Environment configuration
 
-### BuddyPress Documentation
+### 🔌 Plugin Guides
+Located in `docs/plugin-guides/`:
+- Plugin-specific testing guides
+- Integration examples
 
-Complete example implementation:
+## 📚 Quick Navigation
 
-- [BuddyPress Testing Guide](/plugins/buddypress/docs/TESTING-GUIDE.md)
-- [Component Testing](/plugins/buddypress/docs/COMPONENT-TESTING.md)
-- [Test Coverage Report](/plugins/buddypress/docs/TEST-COVERAGE.md)
-- [Testing Summary](/plugins/buddypress/docs/TESTING-SUMMARY.md)
+| Category | Location | Description |
+|----------|----------|-------------|
+| Technical | [docs/technical/](technical/) | Framework internals, methodology |
+| Features | [docs/features/](features/) | Feature implementations |
+| Reports | [docs/reports/](reports/) | Status reports, improvements |
+| Setup | [docs/setup/](setup/) | Installation guides |
+| Plugins | [docs/plugin-guides/](plugin-guides/) | Plugin-specific docs |
 
-## 📖 Quick Links
-
-### Getting Started
-1. [Quick Start Guide](QUICK-START.md) - Test any plugin in 5 minutes
-2. [Framework Guide](framework/FRAMEWORK-GUIDE.md) - Understanding the framework
-3. [Universal Testing](guides/UNIVERSAL-TESTING-GUIDE.md) - Testing methodology
-
-### Architecture
-1. [Framework Structure](architecture/FRAMEWORK-STRUCTURE.md) - Directory layout
-2. [File Index](architecture/FILE-INDEX.md) - Complete file listing
-3. [Master Index](MASTER-INDEX.md) - Everything about the framework
-
-### For Developers
-1. [Testing Guide](guides/TESTING-GUIDE.md) - How to write tests
-2. [Report Organization](guides/REPORT-ORGANIZATION.md) - Report structure
-3. [Plugin Template](/templates/plugin-skeleton/docs/README.md) - Starting template
-
-## 🎯 Documentation Standards
-
-### Framework Documentation
-- Location: `/docs/`
-- Purpose: Universal framework documentation
-- Audience: All users
-
-### Plugin Documentation
-- Location: `/plugins/[plugin-name]/docs/`
-- Purpose: Plugin-specific guides and reports
-- Audience: Plugin testers
-
-### Report Files
-- Location: `/reports/[plugin-name]/`
-- Purpose: Generated test reports
-- Format: Markdown and JSON
-
----
-
-*Documentation organized for 100+ plugin scalability*
+## 🏠 Main Documentation
+- [Main README](../README.md) - Framework overview
+- [Installation Guide](../INSTALL.md) - Quick setup instructions

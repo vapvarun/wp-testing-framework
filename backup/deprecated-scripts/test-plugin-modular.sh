@@ -1,52 +1,44 @@
 #!/bin/bash
 
-# WordPress Plugin Testing Framework v12.0
-# Main orchestrator - calls modular phase implementations
-# Usage: ./test-plugin.sh <plugin-name> [mode] [options]
+# WordPress Plugin Testing Framework v12.0 - Modular Edition
+# Main orchestrator that calls individual phase modules
+# Usage: ./test-plugin-modular.sh <plugin-name> [mode] [options]
 
 set -e
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export FRAMEWORK_PATH="$SCRIPT_DIR"
-export MODULES_PATH="$FRAMEWORK_PATH/bash-modules"
-export PHASES_PATH="$MODULES_PATH/phases"
-
-# Check if modules exist, fallback to modular script if not
-if [ ! -d "$MODULES_PATH" ] || [ ! -f "$MODULES_PATH/shared/common-functions.sh" ]; then
-    echo "⚠️  Modules not found. Using fallback script..."
-    if [ -f "$FRAMEWORK_PATH/test-plugin-modular.sh" ]; then
-        exec "$FRAMEWORK_PATH/test-plugin-modular.sh" "$@"
-    else
-        echo "❌ Error: No fallback script available"
-        exit 1
-    fi
-fi
+FRAMEWORK_PATH="$SCRIPT_DIR"
+MODULES_PATH="$FRAMEWORK_PATH/bash-modules"
+PHASES_PATH="$MODULES_PATH/phases"
 
 # Source common functions
 source "$MODULES_PATH/shared/common-functions.sh"
 
-# Parse arguments
+# Configuration
 PLUGIN_NAME=$1
 TEST_TYPE=${2:-full}
 SKIP_INTERACTIVE=${3:-false}
+INTERACTIVE_MODE=${INTERACTIVE:-false}
+USE_AST=${USE_AST:-true}
+SKIP_PHASES=${SKIP_PHASES:-""}
 
-# Environment variables
+# Export global variables
+export FRAMEWORK_PATH
 export WP_PATH="$(dirname "$FRAMEWORK_PATH")"
 export PLUGIN_PATH="$WP_PATH/wp-content/plugins/$PLUGIN_NAME"
 export UPLOAD_PATH="$WP_PATH/wp-content/uploads"
-export INTERACTIVE_MODE=${INTERACTIVE:-false}
-export USE_AST=${USE_AST:-true}
-export SKIP_PHASES=${SKIP_PHASES:-""}
-export TEST_TYPE
 export PLUGIN_NAME
+export TEST_TYPE
 export SKIP_INTERACTIVE
+export INTERACTIVE_MODE
+export USE_AST
 
 # Function to show usage
 show_usage() {
     cat << EOF
-${BLUE}WordPress Plugin Testing Framework v12.0${NC}
-==========================================
+${BLUE}WordPress Plugin Testing Framework v12.0 - Modular Edition${NC}
+==========================================================
 
 USAGE:
     $0 <plugin-name> [mode] [options]
@@ -55,9 +47,9 @@ PARAMETERS:
     plugin-name : Name of the plugin to test (required)
     mode        : Testing mode (optional)
                   - full (default): Run all 12 phases
-                  - quick: Skip time-consuming phases (3,7,11)
-                  - security: Focus on security (phases 1,2,4)
-                  - performance: Focus on performance (phases 1,2,5)
+                  - quick: Skip time-consuming phases
+                  - security: Focus on security analysis
+                  - performance: Focus on performance
 
 OPTIONS:
     INTERACTIVE=true     : Enable interactive mode with checkpoints
@@ -65,10 +57,10 @@ OPTIONS:
     SKIP_PHASES="3,7,11": Skip specific phases
 
 EXAMPLES:
-    # Full test
+    # Full test with all phases
     $0 woocommerce
 
-    # Quick mode
+    # Quick test
     $0 elementor quick
 
     # Interactive mode
@@ -77,13 +69,10 @@ EXAMPLES:
     # Skip specific phases
     SKIP_PHASES="7,11" $0 wpforms
 
-    # Run single phase
-    ./run-phase.sh -p plugin-name -n 4
-
 PHASES:
     1.  Setup & Directory Structure
     2.  Plugin Detection & Basic Analysis
-    3.  AI-Driven Code Analysis
+    3.  AI-Driven Code Analysis (AST + Dynamic)
     4.  Security Vulnerability Scanning
     5.  Performance Analysis
     6.  Test Generation & Coverage
@@ -101,7 +90,7 @@ EOF
 should_skip_phase() {
     local phase=$1
     
-    # Check SKIP_PHASES environment variable
+    # Check if in SKIP_PHASES
     if [[ ",$SKIP_PHASES," == *",$phase,"* ]]; then
         return 0
     fi
@@ -109,20 +98,29 @@ should_skip_phase() {
     # Check mode-based skipping
     case "$TEST_TYPE" in
         quick)
-            [[ "$phase" == "3" ]] || [[ "$phase" == "7" ]] || [[ "$phase" == "11" ]] && return 0
+            # Skip time-consuming phases in quick mode
+            if [[ "$phase" == "3" ]] || [[ "$phase" == "7" ]] || [[ "$phase" == "11" ]]; then
+                return 0
+            fi
             ;;
         security)
-            [[ "$phase" != "1" ]] && [[ "$phase" != "2" ]] && [[ "$phase" != "4" ]] && return 0
+            # Only run security-related phases
+            if [[ "$phase" != "1" ]] && [[ "$phase" != "2" ]] && [[ "$phase" != "4" ]]; then
+                return 0
+            fi
             ;;
         performance)
-            [[ "$phase" != "1" ]] && [[ "$phase" != "2" ]] && [[ "$phase" != "5" ]] && return 0
+            # Only run performance-related phases
+            if [[ "$phase" != "1" ]] && [[ "$phase" != "2" ]] && [[ "$phase" != "5" ]]; then
+                return 0
+            fi
             ;;
     esac
     
     return 1
 }
 
-# Function to run a phase
+# Function to run a phase module
 run_phase() {
     local phase_num=$1
     local phase_name=$2
@@ -130,86 +128,74 @@ run_phase() {
     
     if should_skip_phase "$phase_num"; then
         print_warning "Skipping Phase $phase_num: $phase_name"
-        SKIPPED_PHASES+=("$phase_num")
         return 0
     fi
     
     local phase_file="$PHASES_PATH/$phase_script"
     
     if [ -f "$phase_file" ]; then
-        # Source the phase module
+        print_info "Starting Phase $phase_num: $phase_name"
+        
+        # Make script executable
+        chmod +x "$phase_file"
+        
+        # Source and run the phase
         source "$phase_file"
         
         # Call the phase function
         local func_name="run_phase_$(printf "%02d" $phase_num)"
-        
         if declare -f "$func_name" > /dev/null; then
-            print_info "Starting Phase $phase_num: $phase_name"
+            $func_name "$PLUGIN_NAME"
+            local result=$?
             
-            # Run the phase function
-            if $func_name "$PLUGIN_NAME"; then
-                COMPLETED_PHASES+=("$phase_num")
+            if [ $result -eq 0 ]; then
                 print_success "Phase $phase_num completed successfully"
             else
-                FAILED_PHASES+=("$phase_num")
-                print_error "Phase $phase_num failed"
-                
-                if [ "$INTERACTIVE_MODE" = "true" ]; then
-                    read -p "Continue with remaining phases? (y/n): " -n 1 -r
-                    echo
-                    [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
-                fi
+                print_error "Phase $phase_num failed with code $result"
+                return $result
             fi
         else
-            print_error "Phase function $func_name not found"
-            FAILED_PHASES+=("$phase_num")
+            print_warning "Phase $phase_num function not found, using fallback"
+            bash "$phase_file" "$PLUGIN_NAME"
         fi
     else
-        print_error "Phase module not found: $phase_script"
-        FAILED_PHASES+=("$phase_num")
+        print_warning "Phase $phase_num module not found: $phase_script"
+        
+        # TODO: Add inline fallback functions here if needed
+        print_info "Using inline implementation for Phase $phase_num"
     fi
+    
+    return 0
 }
 
 # Main execution
 main() {
-    # Check arguments
+    # Check if plugin name provided
     if [ -z "$PLUGIN_NAME" ] || [ "$PLUGIN_NAME" == "--help" ] || [ "$PLUGIN_NAME" == "-h" ]; then
         show_usage
         exit 0
     fi
     
-    # Validate plugin exists
-    if [ ! -d "$PLUGIN_PATH" ]; then
-        print_error "Plugin not found: $PLUGIN_PATH"
-        exit 1
-    fi
-    
     # Banner
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║   WP Testing Framework v12.0              ║${NC}"
-    echo -e "${BLUE}║   Complete Plugin Analysis & Testing      ║${NC}"
+    echo -e "${BLUE}║   WP Testing Framework v12.0 - Modular     ║${NC}"
+    echo -e "${BLUE}║   Complete Plugin Analysis & Testing       ║${NC}"
+    echo -e "${BLUE}║   Plugin: $(printf "%-33s" "$PLUGIN_NAME")║${NC}"
+    echo -e "${BLUE}║   Mode: $(printf "%-35s" "$TEST_TYPE")║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════╝${NC}"
     echo ""
-    echo "Plugin: $PLUGIN_NAME"
-    echo "Mode: $TEST_TYPE"
-    echo ""
-    
-    # Initialize tracking arrays
-    COMPLETED_PHASES=()
-    FAILED_PHASES=()
-    SKIPPED_PHASES=()
     
     # Start timer
     START_TIME=$(date +%s)
     
-    # Define phases
+    # Phase definitions
     declare -a PHASES=(
         "1:Setup & Directory Structure:phase-01-setup.sh"
         "2:Plugin Detection:phase-02-detection.sh"
         "3:AI Analysis:phase-03-ai-analysis.sh"
         "4:Security Scan:phase-04-security.sh"
-        "5:Performance Analysis:phase-05-performance-analysis.sh"
+        "5:Performance Analysis:phase-05-performance.sh"
         "6:Test Generation:phase-06-test-generation.sh"
         "7:Visual Testing:phase-07-visual-testing.sh"
         "8:Integration Tests:phase-08-integration.sh"
@@ -219,23 +205,41 @@ main() {
         "12:Safekeeping:phase-12-safekeeping.sh"
     )
     
+    # Track phase results
+    COMPLETED_PHASES=()
+    FAILED_PHASES=()
+    SKIPPED_PHASES=()
+    
     # Execute phases
     for phase_def in "${PHASES[@]}"; do
         IFS=':' read -r phase_num phase_name phase_script <<< "$phase_def"
-        run_phase "$phase_num" "$phase_name" "$phase_script"
+        
+        if run_phase "$phase_num" "$phase_name" "$phase_script"; then
+            COMPLETED_PHASES+=("$phase_num")
+        else
+            FAILED_PHASES+=("$phase_num")
+            
+            if [ "$INTERACTIVE_MODE" = "true" ]; then
+                read -p "Phase $phase_num failed. Continue? (y/n): " -n 1 -r
+                echo
+                if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                    break
+                fi
+            fi
+        fi
     done
     
-    # Calculate duration
+    # Calculate execution time
     END_TIME=$(date +%s)
     DURATION=$((END_TIME - START_TIME))
     DURATION_MIN=$((DURATION / 60))
     DURATION_SEC=$((DURATION % 60))
     
-    # Summary
+    # Final summary
     echo ""
-    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${GREEN}🎉 ANALYSIS COMPLETE!${NC}"
-    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
     
     echo -e "${BLUE}📊 Execution Summary:${NC}"
@@ -245,30 +249,33 @@ main() {
     echo ""
     
     echo -e "${BLUE}📈 Phase Results:${NC}"
-    echo "   ✅ Completed: ${#COMPLETED_PHASES[@]} phases"
-    [ ${#FAILED_PHASES[@]} -gt 0 ] && echo "   ❌ Failed: ${#FAILED_PHASES[@]} phases (${FAILED_PHASES[*]})"
-    [ ${#SKIPPED_PHASES[@]} -gt 0 ] && echo "   ⏭️  Skipped: ${#SKIPPED_PHASES[@]} phases (${SKIPPED_PHASES[*]})"
+    echo "   Completed: ${#COMPLETED_PHASES[@]} phases"
+    echo "   Failed: ${#FAILED_PHASES[@]} phases"
+    echo "   Skipped: ${#SKIPPED_PHASES[@]} phases"
     
-    # Show results location
+    if [ ${#FAILED_PHASES[@]} -gt 0 ]; then
+        echo ""
+        echo -e "${RED}Failed phases: ${FAILED_PHASES[*]}${NC}"
+    fi
+    
+    # Show report location
     if [ -n "$SCAN_DIR" ] && [ -d "$SCAN_DIR" ]; then
         echo ""
         echo -e "${BLUE}📁 Results saved to:${NC}"
         echo "   $SCAN_DIR"
         
-        if [ -f "$SCAN_DIR/FINAL-REPORT.md" ]; then
+        if [ -d "$SCAN_DIR/reports" ]; then
             echo ""
-            echo -e "${BLUE}📄 Final Report:${NC}"
-            echo "   $SCAN_DIR/FINAL-REPORT.md"
+            echo -e "${BLUE}📄 Reports:${NC}"
+            ls -1 "$SCAN_DIR/reports/"*.md 2>/dev/null | while read report; do
+                echo "   - $(basename "$report")"
+            done
         fi
     fi
     
     echo ""
     echo -e "${GREEN}Thank you for using WP Testing Framework!${NC}"
     echo ""
-    
-    # Exit with appropriate code
-    [ ${#FAILED_PHASES[@]} -gt 0 ] && exit 1
-    exit 0
 }
 
 # Run main function

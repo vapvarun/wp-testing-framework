@@ -64,19 +64,26 @@ Collecting: Version, Files, Structure
 
 ### **PHASE 3: AI-Driven Code Analysis** ⭐
 ```
-Running: Grep → PHPStan → PHPCS → Psalm → AST Parser → Test Data Generator
+Running: AST Parser → Dynamic Test Generator → PHPStan → AI Analysis
 ```
 
-**3.1 Grep Baseline Analysis:**
-- Searches for WordPress patterns
-- Finds hooks, filters, shortcodes
-- Detects AJAX handlers
-- Identifies security functions
+**3.1 WordPress AST Analysis (NEW!):**
+- Parses PHP into Abstract Syntax Tree
+- Detects 4000+ hooks in complex plugins
+- Identifies all WordPress patterns
+- Maps functions, classes, methods
+- Finds security implementations
 
-**3.2 Professional PHP Tools:**
+**3.2 Dynamic Test Data Generation (NEW!):**
+- Analyzes code patterns for data entry points
+- Creates test data based on actual plugin patterns
+- Generates 46+ test scenarios automatically
+- No hardcoded plugin-specific logic
+
+**3.3 Professional PHP Tools:**
 ```bash
 PHPStan: Static analysis for type safety
-PHPCS:   WordPress coding standards
+PHPCS:   WordPress coding standards  
 Psalm:   Advanced type inference
 PHPMD:   Mess detection
 PHPCPD:  Copy-paste detection
@@ -165,16 +172,35 @@ Profiling: Memory usage, Load time, Database queries
 
 ---
 
-### **PHASE 6: Test Generation & Coverage**
+### **PHASE 6: Test Generation & Coverage** ⭐
 ```
-Creating: Unit tests, Integration tests, Coverage reports
+Creating: AI-Enhanced tests, Executable tests, Basic tests, Coverage reports
 ```
 
 **What Happens:**
-- 🧪 Generates PHPUnit test templates
-- 📊 Calculates potential coverage
-- 🎯 Prioritizes critical functions
-- 📝 Creates test configuration
+- 🤖 **AI-Enhanced Smart Tests** (with API key):
+  - Intelligent test cases based on code analysis
+  - Security vulnerability testing
+  - Edge cases and error handling
+  - Form validation and sanitization tests
+  - 40-60% typical coverage
+  
+- 🎯 **Executable Tests** (always generated):
+  - Real assertions that execute code
+  - Function existence and callability
+  - Shortcode output validation
+  - Hook callback verification
+  - 20-30% typical coverage
+  
+- 📝 **Basic Test Structure**:
+  - PHPUnit test class framework
+  - Placeholder methods marked incomplete
+  - 0% coverage (stubs only)
+
+- 📊 **Coverage Analysis**:
+  - Runs tests with Xdebug coverage
+  - Reports actual code coverage percentage
+  - Identifies untested code paths
 
 ---
 

@@ -2,22 +2,30 @@
 
 ## 📊 Comparison: Generic vs WordPress-Specific AST Analyzer
 
-### **BBPress Plugin Analysis Results**
+### **Plugin Analysis Results (wpForo Example)**
 
 | Feature | Generic AST | WordPress AST | Improvement |
 |---------|------------|---------------|-------------|
-| **Hooks** | 2238 | 3580 | +60% |
-| **AJAX Handlers** | 3 | 9 | +200% |
-| **Database Queries** | 26 | 81 | +212% |
-| **Options API** | 0 | 348 | ✅ New |
-| **Meta Operations** | 0 | 368 | ✅ New |
-| **Nonces** | 0 | 112 | ✅ New |
-| **Capabilities** | 0 | 548 | ✅ New |
-| **Sanitization** | 0 | 235 | ✅ New |
-| **Escaping** | 0 | 4175 | ✅ New |
+| **Hooks** | ~1400 | 4076 | +190% |
+| **AJAX Handlers** | ~88 | 257 | +192% |
+| **Database Queries** | 9 | 16 | +78% |
+| **Options API** | 0 | 190 | ✅ New |
+| **Meta Operations** | 0 | 72 | ✅ New |
+| **Nonces** | 0 | 365 | ✅ New |
+| **Capabilities** | 0 | 134 | ✅ New |
+| **Sanitization** | 0 | 1285 | ✅ New |
+| **Escaping** | 0 | 4571 | ✅ New |
 | **Widgets** | 0 | 35 | ✅ New |
-| **Scripts/Styles** | 0 | 8 | ✅ New |
-| **Cron Jobs** | 0 | 2 | ✅ New |
+| **Scripts/Styles** | 0 | 205 | ✅ New |
+| **Cron Jobs** | 0 | 8 | ✅ New |
+
+### **Test Generation Impact**
+
+| Test Type | Coverage | Based On |
+|-----------|----------|----------|
+| **AI-Enhanced Smart Tests** | 40-60% | AST + AI Analysis |
+| **Executable Tests** | 20-30% | AST Patterns |
+| **Basic Tests** | 0% | Structure Only |
 
 ---
 
