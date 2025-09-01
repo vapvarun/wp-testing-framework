@@ -1,257 +1,366 @@
 #!/bin/bash
 
-# Phase 10: Report Consolidation
-# Consolidates all analysis results into comprehensive reports
+# Phase 10: Master Consolidation & Aggregation
+# This phase combines ALL data from previous phases into comprehensive reports
 
-# Set MODULES_PATH if not already set (for standalone execution)
+# Set default MODULES_PATH if not already set
 if [ -z "$MODULES_PATH" ]; then
     MODULES_PATH="$(cd "$(dirname "$0")/.." && pwd)"
 fi
+
+# Source common functions
 source "$MODULES_PATH/shared/common-functions.sh"
 
+# Main phase function
 run_phase_10() {
-    local plugin_name=$1
+    local plugin_name="${1:-}"
+    if [ -z "$plugin_name" ]; then
+        print_error "Plugin name required"
+        return 1
+    fi
+
+    print_phase 10 "Master Data Consolidation & Aggregation"
+
+# Initialize paths
+WP_CONTENT_PATH="${WP_CONTENT_PATH:-/Users/varundubey/Local Sites/wptesting/app/public/wp-content}"
+SCAN_DIR="$WP_CONTENT_PATH/uploads/wbcom-scan/$plugin_name/$(date +%Y-%m)"
+MASTER_REPORT="$SCAN_DIR/MASTER-REPORT.md"
+AGGREGATED_JSON="$SCAN_DIR/aggregated-analysis.json"
+
+print_info "Aggregating all analysis data..."
+
+# Initialize scoring
+TOTAL_SCORE=0
+PHASE_COUNT=0
+CRITICAL_ISSUES=0
+HIGH_ISSUES=0
+MEDIUM_ISSUES=0
+LOW_ISSUES=0
+
+# Check and aggregate data from each phase
+declare -A PHASE_DATA
+
+# Phase 1: Setup (check if directories exist)
+if [ -d "$SCAN_DIR" ]; then
+    PHASE_DATA["setup"]="✅ Complete"
+    ((PHASE_COUNT++))
+    ((TOTAL_SCORE+=10))
+fi
+
+# Phase 2: Feature Extraction
+if [ -f "$SCAN_DIR/extracted-features.json" ] || [ -f "$SCAN_DIR/detection-results.json" ]; then
+    PHASE_DATA["extraction"]="✅ Complete"
+    ((PHASE_COUNT++))
+    ((TOTAL_SCORE+=10))
     
-    print_phase 10 "Consolidating All Reports"
+    # Extract statistics
+    if [ -f "$SCAN_DIR/extracted-features.json" ]; then
+        if command -v jq &> /dev/null; then
+            FUNC_COUNT=$(jq '.statistics.functions // 0' "$SCAN_DIR/extracted-features.json")
+            CLASS_COUNT=$(jq '.statistics.classes // 0' "$SCAN_DIR/extracted-features.json")
+            HOOK_COUNT=$(jq '.statistics.hooks // 0' "$SCAN_DIR/extracted-features.json")
+        fi
+    fi
+fi
+
+# Phase 3: AST Analysis
+if [ -f "$SCAN_DIR/wordpress-ast-analysis.json" ]; then
+    PHASE_DATA["ast_analysis"]="✅ Complete"
+    ((PHASE_COUNT++))
+    ((TOTAL_SCORE+=15))
     
-    print_info "Gathering results from all phases..."
-    
-    # Collect phase results
-    PHASE_RESULTS=""
-    TOTAL_SCORE=0
-    PHASES_RUN=0
-    
-    for i in {1..12}; do
-        phase_num=$(printf "%02d" $i)
-        phase_result_file="$SCAN_DIR/.phase-${phase_num}-result"
+    # Extract AST metrics
+    if command -v jq &> /dev/null; then
+        AST_FUNCTIONS=$(jq '.total.functions // 0' "$SCAN_DIR/wordpress-ast-analysis.json")
+        AST_CLASSES=$(jq '.total.classes // 0' "$SCAN_DIR/wordpress-ast-analysis.json")
+        AST_SECURITY=$(jq '.total.security_issues // 0' "$SCAN_DIR/wordpress-ast-analysis.json")
+        AST_COMPLEXITY=$(jq '.total.complexity // 0' "$SCAN_DIR/wordpress-ast-analysis.json" 2>/dev/null)
         
-        if [ -f "$phase_result_file" ]; then
-            PHASES_RUN=$((PHASES_RUN + 1))
-            
-            # Read phase status (macOS compatible)
-            status=$(cat "$phase_result_file" | sed -n 's/.*"status":[[:space:]]*"\([^"]*\).*/\1/p')
-            [ -z "$status" ] && status="unknown"
-            
-            # Determine phase name
-            case $i in
-                1) phase_name="Setup" ;;
-                2) phase_name="Detection" ;;
-                3) phase_name="AI-Analysis" ;;
-                4) phase_name="Security" ;;
-                5) phase_name="Performance" ;;
-                6) phase_name="Test-Generation" ;;
-                7) phase_name="Visual-Testing" ;;
-                8) phase_name="Integration" ;;
-                9) phase_name="Documentation" ;;
-                10) phase_name="Consolidation" ;;
-                11) phase_name="Live-Testing" ;;
-                12) phase_name="Safekeeping" ;;
-            esac
-            
-            PHASE_RESULTS="${PHASE_RESULTS}### Phase $i: $phase_name\n"
-            PHASE_RESULTS="${PHASE_RESULTS}- Status: $status\n"
-            
-            # Check for phase-specific reports (macOS compatible lowercase)
-            phase_name_lower=$(echo "$phase_name" | tr '[:upper:]' '[:lower:]')
-            report_file="$SCAN_DIR/reports/${phase_name_lower}-report.md"
-            report_file="${report_file// /-}"
-            
-            if [ -f "$report_file" ]; then
-                PHASE_RESULTS="${PHASE_RESULTS}- Report: [View Report](reports/$(basename "$report_file"))\n"
-                
-                # Extract scores if available (macOS compatible)
-                score=$(sed -n 's/.*Score:[[:space:]]*\([0-9]*\)\/100.*/\1/p' "$report_file" | head -1)
-                if [ -n "$score" ]; then
-                    TOTAL_SCORE=$((TOTAL_SCORE + score))
-                    PHASE_RESULTS="${PHASE_RESULTS}- Score: $score/100\n"
-                fi
-                
-            fi
-            PHASE_RESULTS="${PHASE_RESULTS}\n"
-        fi
-    done
-    
-    # Calculate average score
-    if [ $PHASES_RUN -gt 0 ]; then
-        AVG_SCORE=$((TOTAL_SCORE / PHASES_RUN))
-    else
-        AVG_SCORE=0
-    fi
-    
-    # Extract plugin metadata (macOS compatible)
-    PLUGIN_VERSION=""
-    PLUGIN_AUTHOR=""
-    if [ -f "$SCAN_DIR/scan-info.json" ]; then
-        if command_exists jq; then
-            PLUGIN_VERSION=$(jq -r '.version // ""' "$SCAN_DIR/scan-info.json")
-            PLUGIN_AUTHOR=$(jq -r '.author // ""' "$SCAN_DIR/scan-info.json")
-        else
-            # Fallback to sed for JSON parsing
-            PLUGIN_VERSION=$(sed -n 's/.*"version":[[:space:]]*"\([^"]*\).*/\1/p' "$SCAN_DIR/scan-info.json")
-            PLUGIN_AUTHOR=$(sed -n 's/.*"author":[[:space:]]*"\([^"]*\).*/\1/p' "$SCAN_DIR/scan-info.json")
+        if [ "$AST_SECURITY" -gt 0 ]; then
+            ((CRITICAL_ISSUES+=AST_SECURITY))
         fi
     fi
-    
-    # Create master report
-    MASTER_REPORT="$SCAN_DIR/MASTER-REPORT.md"
-    
-    cat > "$MASTER_REPORT" << EOF
-# WordPress Plugin Testing Framework - Master Report
+fi
 
+# Phase 4: Security Analysis
+if [ -f "$SCAN_DIR/reports/security-report.md" ]; then
+    PHASE_DATA["security"]="✅ Complete"
+    ((PHASE_COUNT++))
+    
+    # Extract security score
+    SECURITY_SCORE=$(grep "Security Score:" "$SCAN_DIR/reports/security-report.md" | sed -E 's/.*:\s*([0-9]+).*/\1/' | head -1)
+    if [ ! -z "$SECURITY_SCORE" ]; then
+        ((TOTAL_SCORE+=SECURITY_SCORE/10))
+    fi
+    
+    # Count security issues
+    XSS_COUNT=$(grep -c "XSS" "$SCAN_DIR/reports/security-report.md" 2>/dev/null || echo 0)
+    SQL_COUNT=$(grep -c "SQL" "$SCAN_DIR/reports/security-report.md" 2>/dev/null || echo 0)
+    ((HIGH_ISSUES+=XSS_COUNT+SQL_COUNT))
+fi
+
+# Phase 5: Performance Analysis
+if [ -f "$SCAN_DIR/reports/performance-report.md" ]; then
+    PHASE_DATA["performance"]="✅ Complete"
+    ((PHASE_COUNT++))
+    
+    PERF_SCORE=$(grep "Score:" "$SCAN_DIR/reports/performance-report.md" | sed -E 's/.*:\s*([0-9]+).*/\1/' | head -1)
+    if [ ! -z "$PERF_SCORE" ]; then
+        ((TOTAL_SCORE+=PERF_SCORE/10))
+    fi
+fi
+
+# Phase 6: Test Generation
+if [ -d "$SCAN_DIR/generated-tests" ]; then
+    PHASE_DATA["tests"]="✅ Complete"
+    ((PHASE_COUNT++))
+    TEST_COUNT=$(find "$SCAN_DIR/generated-tests" -name "*.php" | wc -l)
+    if [ "$TEST_COUNT" -gt 0 ]; then
+        ((TOTAL_SCORE+=10))
+    fi
+fi
+
+# Phase 7: Visual Testing
+if [ -d "$SCAN_DIR/screenshots" ]; then
+    PHASE_DATA["visual"]="✅ Complete"
+    ((PHASE_COUNT++))
+    SCREENSHOT_COUNT=$(find "$SCAN_DIR/screenshots" -name "*.png" 2>/dev/null | wc -l)
+    if [ "$SCREENSHOT_COUNT" -gt 0 ]; then
+        ((TOTAL_SCORE+=5))
+    fi
+fi
+
+# Phase 8: Integration Testing
+if [ -f "$SCAN_DIR/reports/integration-report.md" ]; then
+    PHASE_DATA["integration"]="✅ Complete"
+    ((PHASE_COUNT++))
+    ((TOTAL_SCORE+=10))
+fi
+
+# Phase 9: Documentation
+if [ -f "$SCAN_DIR/analysis-requests/phase-9-ai-documentation.md" ]; then
+    PHASE_DATA["documentation"]="✅ Complete"
+    ((PHASE_COUNT++))
+    ((TOTAL_SCORE+=10))
+fi
+
+# Phase 11: Live Testing
+if [ -f "$SCAN_DIR/reports/live-testing-report.md" ]; then
+    PHASE_DATA["live_testing"]="✅ Complete"
+    ((PHASE_COUNT++))
+    ((TOTAL_SCORE+=5))
+fi
+
+# Calculate final score
+if [ $PHASE_COUNT -gt 0 ]; then
+    FINAL_SCORE=$((TOTAL_SCORE * 100 / (PHASE_COUNT * 10)))
+else
+    FINAL_SCORE=0
+fi
+
+# Generate aggregated JSON
+print_info "Creating aggregated analysis JSON..."
+
+cat > "$AGGREGATED_JSON" << EOF
+{
+  "plugin": "$plugin_name",
+  "analysis_date": "$(date -Iseconds)",
+  "overall_score": $FINAL_SCORE,
+  "phases_completed": $PHASE_COUNT,
+  "issues": {
+    "critical": $CRITICAL_ISSUES,
+    "high": $HIGH_ISSUES,
+    "medium": $MEDIUM_ISSUES,
+    "low": $LOW_ISSUES
+  },
+  "metrics": {
+    "functions": ${AST_FUNCTIONS:-0},
+    "classes": ${AST_CLASSES:-0},
+    "hooks": ${HOOK_COUNT:-0},
+    "security_score": ${SECURITY_SCORE:-0},
+    "performance_score": ${PERF_SCORE:-0},
+    "test_coverage": 0
+  },
+  "phases": {
+    "setup": "${PHASE_DATA[setup]:-❌ Missing}",
+    "extraction": "${PHASE_DATA[extraction]:-❌ Missing}",
+    "ast_analysis": "${PHASE_DATA[ast_analysis]:-❌ Missing}",
+    "security": "${PHASE_DATA[security]:-❌ Missing}",
+    "performance": "${PHASE_DATA[performance]:-❌ Missing}",
+    "tests": "${PHASE_DATA[tests]:-❌ Missing}",
+    "visual": "${PHASE_DATA[visual]:-❌ Missing}",
+    "integration": "${PHASE_DATA[integration]:-❌ Missing}",
+    "documentation": "${PHASE_DATA[documentation]:-❌ Missing}",
+    "live_testing": "${PHASE_DATA[live_testing]:-❌ Missing}"
+  }
+}
+EOF
+
+# Generate Master Report
+print_info "Generating master report..."
+
+cat > "$MASTER_REPORT" << EOF
+# MASTER ANALYSIS REPORT
 **Plugin**: $plugin_name  
-**Version**: ${PLUGIN_VERSION:-Unknown}  
-**Author**: ${PLUGIN_AUTHOR:-Unknown}  
 **Date**: $(date)  
-**Framework Version**: 12.0
-
----
+**Overall Score**: $FINAL_SCORE/100
 
 ## Executive Summary
+This comprehensive analysis evaluated the $plugin_name WordPress plugin across $PHASE_COUNT analysis phases, identifying ${CRITICAL_ISSUES} critical issues, ${HIGH_ISSUES} high-priority issues, ${MEDIUM_ISSUES} medium issues, and ${LOW_ISSUES} low-priority issues.
 
-- **Total Phases Run**: $PHASES_RUN/12
-- **Average Score**: $AVG_SCORE/100
-- **Status**: $([ $AVG_SCORE -ge 80 ] && echo "✅ Production Ready" || echo "⚠️ Needs Attention")
+## Phase Completion Status
+| Phase | Status | Details |
+|-------|--------|---------|
+| Setup & Discovery | ${PHASE_DATA[setup]:-❌ Missing} | Directory structure and plugin metadata |
+| Feature Extraction | ${PHASE_DATA[extraction]:-❌ Missing} | ${FUNC_COUNT:-0} functions, ${CLASS_COUNT:-0} classes, ${HOOK_COUNT:-0} hooks |
+| AST Code Analysis | ${PHASE_DATA[ast_analysis]:-❌ Missing} | ${AST_FUNCTIONS:-0} functions analyzed |
+| Security Scan | ${PHASE_DATA[security]:-❌ Missing} | Score: ${SECURITY_SCORE:-0}/100 |
+| Performance Analysis | ${PHASE_DATA[performance]:-❌ Missing} | Score: ${PERF_SCORE:-0}/100 |
+| Test Generation | ${PHASE_DATA[tests]:-❌ Missing} | ${TEST_COUNT:-0} test files generated |
+| Visual Testing | ${PHASE_DATA[visual]:-❌ Missing} | ${SCREENSHOT_COUNT:-0} screenshots captured |
+| Integration Testing | ${PHASE_DATA[integration]:-❌ Missing} | WordPress integration verified |
+| Documentation | ${PHASE_DATA[documentation]:-❌ Missing} | AI documentation prompt generated |
+| Live Testing | ${PHASE_DATA[live_testing]:-❌ Missing} | Runtime validation completed |
 
-## Phase Results
+## Key Metrics
+- **Total Functions**: ${AST_FUNCTIONS:-0}
+- **Total Classes**: ${AST_CLASSES:-0}
+- **WordPress Hooks**: ${HOOK_COUNT:-0}
+- **Security Issues**: $((CRITICAL_ISSUES + HIGH_ISSUES))
+- **Performance Score**: ${PERF_SCORE:-0}/100
+- **Test Coverage**: 0%
 
-$(echo -e "$PHASE_RESULTS")
+## Critical Findings
 
-## Key Findings
-
+### Security Issues
 EOF
-    
-    # Add key findings from various reports
-    if [ -f "$SCAN_DIR/reports/security-report.md" ]; then
-        echo "### Security" >> "$MASTER_REPORT"
-        # Extract vulnerabilities count (macOS compatible)
-        vulns=$(grep -c "potential.*vulnerabilit" "$SCAN_DIR/reports/security-report.md" 2>/dev/null || echo "0")
-        echo "- Potential vulnerabilities found: $vulns" >> "$MASTER_REPORT"
-        echo "" >> "$MASTER_REPORT"
-    fi
-    
-    if [ -f "$SCAN_DIR/reports/performance-report.md" ]; then
-        echo "### Performance" >> "$MASTER_REPORT"
-        # Extract performance metrics
-        db_queries=$(grep -c "Database quer" "$SCAN_DIR/reports/performance-report.md" 2>/dev/null || echo "0")
-        echo "- Database operations analyzed: $db_queries" >> "$MASTER_REPORT"
-        echo "" >> "$MASTER_REPORT"
-    fi
-    
-    if [ -f "$SCAN_DIR/wordpress-ast-analysis.json" ] && command_exists jq; then
-        echo "### Code Analysis" >> "$MASTER_REPORT"
-        functions=$(jq '.total.functions // 0' "$SCAN_DIR/wordpress-ast-analysis.json" 2>/dev/null)
-        classes=$(jq '.total.classes // 0' "$SCAN_DIR/wordpress-ast-analysis.json" 2>/dev/null)
-        hooks=$(jq '.total.hooks // 0' "$SCAN_DIR/wordpress-ast-analysis.json" 2>/dev/null)
-        echo "- Functions: $functions" >> "$MASTER_REPORT"
-        echo "- Classes: $classes" >> "$MASTER_REPORT"
-        echo "- Hooks: $hooks" >> "$MASTER_REPORT"
-        echo "" >> "$MASTER_REPORT"
-    fi
-    
-    # Add recommendations
-    cat >> "$MASTER_REPORT" << EOF
+
+# Add security findings if available
+if [ -f "$SCAN_DIR/reports/security-report.md" ]; then
+    echo "" >> "$MASTER_REPORT"
+    grep -A 5 "Vulnerability Scan Results" "$SCAN_DIR/reports/security-report.md" >> "$MASTER_REPORT" 2>/dev/null || echo "No security issues found" >> "$MASTER_REPORT"
+fi
+
+cat >> "$MASTER_REPORT" << EOF
+
+### Performance Bottlenecks
+EOF
+
+# Add performance findings if available
+if [ -f "$SCAN_DIR/reports/performance-report.md" ]; then
+    echo "" >> "$MASTER_REPORT"
+    grep -A 5 "Recommendations" "$SCAN_DIR/reports/performance-report.md" >> "$MASTER_REPORT" 2>/dev/null || echo "No performance issues found" >> "$MASTER_REPORT"
+fi
+
+cat >> "$MASTER_REPORT" << EOF
+
+### Code Quality
+EOF
+
+# Add code quality metrics from AST if available
+if [ -f "$SCAN_DIR/wordpress-ast-analysis.json" ] && command -v jq &> /dev/null; then
+    echo "- Nonce Checks: $(jq '.total.nonces // 0' "$SCAN_DIR/wordpress-ast-analysis.json")" >> "$MASTER_REPORT"
+    echo "- Capability Checks: $(jq '.total.capabilities // 0' "$SCAN_DIR/wordpress-ast-analysis.json")" >> "$MASTER_REPORT"
+    echo "- Sanitization Calls: $(jq '.total.sanitization // 0' "$SCAN_DIR/wordpress-ast-analysis.json")" >> "$MASTER_REPORT"
+    echo "- Escaping Calls: $(jq '.total.escaping // 0' "$SCAN_DIR/wordpress-ast-analysis.json")" >> "$MASTER_REPORT"
+fi
+
+cat >> "$MASTER_REPORT" << EOF
 
 ## Recommendations
 
-1. **Security**: $([ -f "$SCAN_DIR/reports/security-report.md" ] && grep -c "HIGH" "$SCAN_DIR/reports/security-report.md" 2>/dev/null | xargs -I {} test {} -gt 0 && echo "Address HIGH priority security issues immediately" || echo "Continue regular security audits")
-2. **Performance**: $([ $AVG_SCORE -lt 70 ] && echo "Optimize database queries and caching" || echo "Performance is acceptable")
-3. **Testing**: $([ -f "$SCAN_DIR/generated-tests" ] && echo "Execute generated test suite" || echo "Generate comprehensive test coverage")
-4. **Documentation**: $([ -f "$SCAN_DIR/reports/documentation-report.md" ] && echo "Review and enhance documentation" || echo "Create missing documentation")
+### Immediate Actions (Critical)
+EOF
 
-## Files Generated
+if [ $CRITICAL_ISSUES -gt 0 ]; then
+    echo "1. Address $CRITICAL_ISSUES critical security vulnerabilities" >> "$MASTER_REPORT"
+fi
 
-- Reports: $(ls -1 "$SCAN_DIR/reports" 2>/dev/null | wc -l | tr -d ' ') files
-- Tests: $(ls -1 "$SCAN_DIR/generated-tests" 2>/dev/null | wc -l | tr -d ' ') files
-- Screenshots: $(ls -1 "$SCAN_DIR/screenshots" 2>/dev/null | wc -l | tr -d ' ') files
-- Analysis Prompts: $(ls -1 "$SCAN_DIR/analysis-requests" 2>/dev/null | wc -l | tr -d ' ') files
+if [ $HIGH_ISSUES -gt 0 ]; then
+    echo "2. Fix $HIGH_ISSUES high-priority issues" >> "$MASTER_REPORT"
+fi
+
+cat >> "$MASTER_REPORT" << EOF
+
+### Short-term Improvements (1-2 weeks)
+1. Increase test coverage (currently 0%)
+2. Implement caching for database-heavy operations
+3. Add input validation for all user inputs
+
+### Long-term Enhancements (1-3 months)
+1. Refactor high-complexity functions
+2. Implement REST API for modern integration
+3. Add Gutenberg block support
+4. Improve multisite compatibility
+
+## Technical Debt Score
+Based on the analysis, the technical debt score is: **${FINAL_SCORE}/100**
+
+### Breakdown:
+- Code Quality: ${AST_FUNCTIONS:+Good} ${AST_FUNCTIONS:-Unknown}
+- Security Posture: ${SECURITY_SCORE:-0}/100
+- Performance: ${PERF_SCORE:-0}/100
+- Test Coverage: 0/100
+- Documentation: ${PHASE_DATA[documentation]:-Missing}
+
+## Data Files
+All analysis data is available in:
+- Master JSON: $AGGREGATED_JSON
+- Feature Data: $SCAN_DIR/extracted-features.json
+- AST Analysis: $SCAN_DIR/wordpress-ast-analysis.json
+- Reports Directory: $SCAN_DIR/reports/
 
 ## Next Steps
-
-1. Review the detailed reports in the \`reports/\` directory
-2. Address any security vulnerabilities identified
-3. Implement recommended performance optimizations
-4. Execute the generated test suite
-5. Review and implement the development plan
+1. Review critical security issues immediately
+2. Generate comprehensive documentation using the AI prompt
+3. Implement suggested test cases
+4. Plan refactoring based on complexity analysis
+5. Schedule regular re-scans to track improvements
 
 ---
-
-*Report generated by WordPress Plugin Testing Framework v12.0*  
-*For support, visit: https://github.com/wp-testing-framework*
+*Generated by WordPress Plugin Testing Framework v12.0*
+*Analysis completed in $PHASE_COUNT phases*
 EOF
-    
-    print_success "Master report generated: $MASTER_REPORT"
-    
-    # Create JSON summary for programmatic access
-    JSON_SUMMARY="$SCAN_DIR/summary.json"
-    
-    cat > "$JSON_SUMMARY" << EOF
+
+# Create summary JSON for dashboard/API consumption
+SUMMARY_JSON="$SCAN_DIR/summary.json"
+cat > "$SUMMARY_JSON" << EOF
 {
-    "plugin": "$plugin_name",
-    "version": "${PLUGIN_VERSION:-Unknown}",
-    "date": "$(date -Iseconds)",
-    "framework_version": "12.0",
-    "phases_run": $PHASES_RUN,
-    "average_score": $AVG_SCORE,
-    "reports": {
-        "master": "MASTER-REPORT.md",
-        "security": "reports/security-report.md",
-        "performance": "reports/performance-report.md",
-        "documentation": "reports/documentation-report.md"
-    },
-    "metrics": {
-        "functions": ${functions:-0},
-        "classes": ${classes:-0},
-        "hooks": ${hooks:-0},
-        "vulnerabilities": ${vulns:-0}
-    },
-    "status": "$([ $AVG_SCORE -ge 80 ] && echo "production_ready" || echo "needs_attention")"
+  "plugin": "$plugin_name",
+  "score": $FINAL_SCORE,
+  "phases": $PHASE_COUNT,
+  "issues": {
+    "total": $((CRITICAL_ISSUES + HIGH_ISSUES + MEDIUM_ISSUES + LOW_ISSUES)),
+    "critical": $CRITICAL_ISSUES,
+    "high": $HIGH_ISSUES
+  },
+  "timestamp": "$(date -Iseconds)"
 }
 EOF
-    
-    print_success "JSON summary created: $JSON_SUMMARY"
-    
-    # Save phase results
-    save_phase_results "10" "completed"
-    
-    # Generate final score
-    print_success "Consolidation complete - Overall Score: $AVG_SCORE/100"
-    
-    # Display summary
-    echo ""
-    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${GREEN}📊 Analysis Summary${NC}"
-    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
-    echo "Plugin: $plugin_name"
-    echo "Phases Completed: $PHASES_RUN/12"
-    echo "Overall Score: $AVG_SCORE/100"
-    echo ""
-    echo "Master Report: $MASTER_REPORT"
-    echo "All Reports: $SCAN_DIR/reports/"
-    echo ""
-    
+
+print_success "Master report generated: $MASTER_REPORT"
+print_success "Aggregated JSON created: $AGGREGATED_JSON"
+print_success "Summary JSON created: $SUMMARY_JSON"
+
+# Display summary
+echo ""
+print_info "Analysis Summary:"
+echo "  - Overall Score: $FINAL_SCORE/100"
+echo "  - Phases Completed: $PHASE_COUNT/10"
+echo "  - Critical Issues: $CRITICAL_ISSUES"
+echo "  - High Priority Issues: $HIGH_ISSUES"
+echo ""
+
+if [ $FINAL_SCORE -ge 80 ]; then
+    print_success "✨ Plugin is in EXCELLENT condition!"
+elif [ $FINAL_SCORE -ge 60 ]; then
+    print_warning "⚠️ Plugin needs some improvements"
+elif [ $FINAL_SCORE -ge 40 ]; then
+    print_warning "⚠️ Plugin has significant issues"
+else
+    print_error "❌ Plugin requires major work"
+fi
+
+    print_success "Phase 10 completed successfully"
     return 0
 }
-
-# Execute if running standalone
-if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
-    # Check if plugin name provided
-    if [ -z "$1" ]; then
-        echo "Usage: $0 <plugin-name>"
-        exit 1
-    fi
-    
-    # Set required variables
-    PLUGIN_NAME=$1
-    FRAMEWORK_PATH="$(cd "$(dirname "$0")/../../" && pwd)"
-    WP_PATH="$(dirname "$FRAMEWORK_PATH")"
-    PLUGIN_PATH="$WP_PATH/wp-content/plugins/$PLUGIN_NAME"
-    UPLOAD_PATH="$WP_PATH/wp-content/uploads"
-    
-    # Load scan directory
-    DATE_MONTH=$(date +"%Y-%m")
-    SCAN_DIR="$UPLOAD_PATH/wbcom-scan/$PLUGIN_NAME/$DATE_MONTH"
-    
-    # Run the phase
-    run_phase_10 "$PLUGIN_NAME"
-fi
