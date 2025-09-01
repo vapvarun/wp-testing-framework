@@ -154,6 +154,7 @@ EOF
     TOTAL_COMPLEXITY=$((IF_COUNT + FOREACH_COUNT + WHILE_COUNT + SWITCH_COUNT))
     
     # Calculate complexity per file (with bc check)
+    PHP_COUNT=${PHP_COUNT:-0}
     if command_exists bc && [ "$PHP_COUNT" -gt 0 ]; then
         COMPLEXITY_PER_FILE=$(echo "scale=2; $TOTAL_COMPLEXITY / $PHP_COUNT" | bc)
     else

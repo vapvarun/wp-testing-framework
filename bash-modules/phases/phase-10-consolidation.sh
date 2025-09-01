@@ -53,12 +53,21 @@ if [ -f "$SCAN_DIR/extracted-features.json" ] || [ -f "$SCAN_DIR/detection-resul
     ((PHASE_COUNT++))
     ((TOTAL_SCORE+=10))
     
-    # Extract statistics
-    if [ -f "$SCAN_DIR/extracted-features.json" ]; then
+    # Extract statistics (with fallbacks for empty files)
+    if [ -f "$SCAN_DIR/extracted-features.json" ] && [ -s "$SCAN_DIR/extracted-features.json" ]; then
         if command -v jq &> /dev/null; then
-            FUNC_COUNT=$(jq '.statistics.functions // 0' "$SCAN_DIR/extracted-features.json")
-            CLASS_COUNT=$(jq '.statistics.classes // 0' "$SCAN_DIR/extracted-features.json")
-            HOOK_COUNT=$(jq '.statistics.hooks // 0' "$SCAN_DIR/extracted-features.json")
+            FUNC_COUNT=$(jq '.statistics.functions // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null || echo "0")
+            CLASS_COUNT=$(jq '.statistics.classes // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null || echo "0")
+            HOOK_COUNT=$(jq '.statistics.hooks // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null || echo "0")
+        fi
+    else
+        # Try to get from AST if extracted-features is empty
+        if [ -f "$SCAN_DIR/wordpress-ast-analysis.json" ] && [ -s "$SCAN_DIR/wordpress-ast-analysis.json" ]; then
+            if command -v jq &> /dev/null; then
+                FUNC_COUNT=$(jq '.functions // 0' "$SCAN_DIR/wordpress-ast-analysis.json" 2>/dev/null || echo "0")
+                CLASS_COUNT=$(jq '.classes // 0' "$SCAN_DIR/wordpress-ast-analysis.json" 2>/dev/null || echo "0")
+                HOOK_COUNT=$(jq '.wordpress_features.hooks // 0' "$SCAN_DIR/wordpress-ast-analysis.json" 2>/dev/null || echo "0")
+            fi
         fi
     fi
 fi

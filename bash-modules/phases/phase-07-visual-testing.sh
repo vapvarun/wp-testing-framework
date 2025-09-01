@@ -28,13 +28,14 @@ run_phase_07() {
     SCREENSHOTS_DIR="$SCAN_DIR/screenshots"
     ensure_directory "$SCREENSHOTS_DIR"
     
-    # Check for screenshot tools
+    # Check for screenshot tools - use simple tool for individual pages
+    SIMPLE_SCREENSHOT="$FRAMEWORK_PATH/tools/simple-screenshot.js"
     SCREENSHOT_TOOL="$FRAMEWORK_PATH/tools/automated-screenshot-capture.js"
     
-    if [ -f "$SCREENSHOT_TOOL" ]; then
+    if [ -f "$SIMPLE_SCREENSHOT" ]; then
         print_info "Capturing plugin screenshots..."
         
-        # Define pages to capture
+        # Define pages to capture (generic + plugin-specific)
         PAGES=(
             "wp-admin:Dashboard"
             "wp-admin/plugins.php:Plugins Page"
@@ -42,11 +43,52 @@ run_phase_07() {
             "/:Homepage"
         )
         
-        # Get site URL
+        # Add plugin-specific pages for known plugins
+        case "$plugin_name" in
+            "bbpress")
+                PAGES+=(
+                    "wp-admin/edit.php?post_type=forum:Forums List"
+                    "wp-admin/edit.php?post_type=topic:Topics List"
+                    "wp-admin/edit.php?post_type=reply:Replies List"
+                    "wp-admin/post-new.php?post_type=forum:New Forum"
+                    "forums/:Forums Archive"
+                )
+                ;;
+            "woocommerce")
+                PAGES+=(
+                    "wp-admin/edit.php?post_type=product:Products List"
+                    "wp-admin/edit.php?post_type=shop_order:Orders List"
+                    "shop/:Shop Page"
+                    "cart/:Cart Page"
+                )
+                ;;
+            # Add more plugin-specific pages as needed
+        esac
+        
+        # Get site URL - properly detect Local WP or use WP-CLI
         SITE_URL="http://localhost"
-        if [ -f "$WP_PATH/wp-config.php" ]; then
-            SITE_URL=$(grep -oP "define\s*\(\s*'WP_HOME'\s*,\s*'[^']+'" "$WP_PATH/wp-config.php" | cut -d"'" -f4)
-            SITE_URL=${SITE_URL:-"http://localhost"}
+        
+        # Try WP-CLI first (most reliable)
+        if command_exists wp && [ -n "$WP_PATH" ]; then
+            DETECTED_URL=$(wp option get siteurl --path="$WP_PATH" 2>/dev/null || echo "")
+            if [ -n "$DETECTED_URL" ]; then
+                SITE_URL="$DETECTED_URL"
+                print_info "Detected site URL: $SITE_URL"
+            fi
+        fi
+        
+        # Fallback to wp-config.php if WP-CLI failed
+        if [ "$SITE_URL" = "http://localhost" ] && [ -f "$WP_PATH/wp-config.php" ]; then
+            # Try to find WP_HOME or WP_SITEURL
+            WP_HOME=$(grep -E "define\s*\(\s*['\"]WP_HOME['\"]" "$WP_PATH/wp-config.php" | sed -E "s/.*define\s*\(\s*['\"]WP_HOME['\"]\s*,\s*['\"]([^'\"]+).*/\1/" 2>/dev/null || echo "")
+            if [ -n "$WP_HOME" ]; then
+                SITE_URL="$WP_HOME"
+            fi
+        fi
+        
+        # Local WP detection - check for .local domain
+        if [[ "$SITE_URL" == *".local"* ]]; then
+            print_info "Local WP environment detected"
         fi
         
         SCREENSHOT_COUNT=0
@@ -58,36 +100,91 @@ run_phase_07() {
             
             OUTPUT_FILE="$SCREENSHOTS_DIR/$(echo "$name" | tr ' ' '-' | tr '[:upper:]' '[:lower:]').png"
             
-            # Run screenshot capture
-            if node "$SCREENSHOT_TOOL" "$plugin_name" "$SITE_URL/$path" "admin" "password" "$OUTPUT_FILE" 2>/dev/null; then
-                if [ -f "$OUTPUT_FILE" ]; then
-                    SCREENSHOT_COUNT=$((SCREENSHOT_COUNT + 1))
-                    print_success "Captured: $name"
-                fi
+            # Run screenshot capture with auto-login
+            FULL_URL="$SITE_URL/$path"
+            # Clean up double slashes except after protocol
+            FULL_URL=$(echo "$FULL_URL" | sed 's|//|/|g' | sed 's|:/|://|')
+            
+            # Try with auto-login first for Local WP
+            if [[ "$SITE_URL" == *".local"* ]]; then
+                # Use auto-login for Local WP environments
+                USE_AUTO_LOGIN=true node "$SIMPLE_SCREENSHOT" "$FULL_URL" "$OUTPUT_FILE" "admin" "" 2>&1 | grep -v "^$" || true
+            else
+                # Use provided credentials for other environments
+                node "$SIMPLE_SCREENSHOT" "$FULL_URL" "$OUTPUT_FILE" "admin" "password" 2>&1 | grep -v "^$" || true
+            fi
+            
+            if [ -f "$OUTPUT_FILE" ]; then
+                SCREENSHOT_COUNT=$((SCREENSHOT_COUNT + 1))
+                print_success "Captured: $name"
+            else
+                print_warning "Failed to capture: $name"
             fi
         done
+        
+        # Capture screenshots of injected test content (forums, topics, replies, etc.)
+        TEST_CONTENT_FILE="$SCAN_DIR/raw-outputs/test-content-urls.txt"
+        if [ -f "$TEST_CONTENT_FILE" ] && [ -s "$TEST_CONTENT_FILE" ]; then
+            print_info "Capturing injected test content pages..."
+            
+            # Format is: post_id:type:url
+            while IFS=':' read -r content_id content_type content_url; do
+                if [ -n "$content_url" ]; then
+                    print_info "Capturing $content_type: $content_url"
+                    OUTPUT_FILE="$SCREENSHOTS_DIR/content-$(echo "$content_type-$content_id" | tr ' ' '-').png"
+                    
+                    # Most content pages don't need login, but use auto-login for Local WP
+                    if [[ "$SITE_URL" == *".local"* ]]; then
+                        USE_AUTO_LOGIN=true node "$SIMPLE_SCREENSHOT" "$content_url" "$OUTPUT_FILE" "admin" "" 2>&1 | grep -v "^$" || true
+                    else
+                        node "$SIMPLE_SCREENSHOT" "$content_url" "$OUTPUT_FILE" "" "" 2>&1 | grep -v "^$" || true
+                    fi
+                    
+                    if [ -f "$OUTPUT_FILE" ]; then
+                        SCREENSHOT_COUNT=$((SCREENSHOT_COUNT + 1))
+                        print_success "Captured $content_type content"
+                    fi
+                fi
+            done < "$TEST_CONTENT_FILE"
+        fi
         
         # Capture screenshots of test pages with shortcodes
         TEST_PAGES_FILE="$SCAN_DIR/raw-outputs/test-pages.txt"
         if [ -f "$TEST_PAGES_FILE" ] && [ -s "$TEST_PAGES_FILE" ]; then
             print_info "Capturing shortcode test pages..."
             
-            while IFS=':' read -r page_id shortcode; do
+            # Format is: page_id:shortcode:url
+            while IFS=':' read -r page_id shortcode page_url; do
                 if [ -n "$page_id" ] && [ "$page_id" != "0" ]; then
-                    # Get page URL using WP-CLI if available
-                    if [ "$WP_CLI_AVAILABLE" = "true" ]; then
+                    # Use URL from file if available, otherwise get from WP-CLI
+                    PAGE_URL="$page_url"
+                    
+                    # If URL not in file, try WP-CLI
+                    if [ -z "$PAGE_URL" ] && [ "$WP_CLI_AVAILABLE" = "true" ]; then
                         PAGE_URL=$(wp post get "$page_id" --field=link --path="$WP_PATH" 2>/dev/null || echo "")
+                    fi
+                    
+                    # If still no URL, construct it
+                    if [ -z "$PAGE_URL" ]; then
+                        PAGE_URL="$SITE_URL/?p=$page_id"
+                    fi
+                    
+                    if [ -n "$PAGE_URL" ]; then
+                        print_info "Capturing shortcode [$shortcode] page..."
+                        OUTPUT_FILE="$SCREENSHOTS_DIR/shortcode-$(echo "$shortcode" | tr ' ' '-').png"
                         
-                        if [ -n "$PAGE_URL" ]; then
-                            print_info "Capturing shortcode [$shortcode] page..."
-                            OUTPUT_FILE="$SCREENSHOTS_DIR/shortcode-$(echo "$shortcode" | tr ' ' '-').png"
-                            
-                            if node "$SCREENSHOT_TOOL" "$plugin_name" "$PAGE_URL" "admin" "password" "$OUTPUT_FILE" 2>/dev/null; then
-                                if [ -f "$OUTPUT_FILE" ]; then
-                                    SCREENSHOT_COUNT=$((SCREENSHOT_COUNT + 1))
-                                    print_success "Captured shortcode: [$shortcode]"
-                                fi
-                            fi
+                        # Use auto-login for Local WP
+                        if [[ "$SITE_URL" == *".local"* ]]; then
+                            USE_AUTO_LOGIN=true node "$SIMPLE_SCREENSHOT" "$PAGE_URL" "$OUTPUT_FILE" "admin" "" 2>&1 | grep -v "^$" || true
+                        else
+                            node "$SIMPLE_SCREENSHOT" "$PAGE_URL" "$OUTPUT_FILE" "admin" "password" 2>&1 | grep -v "^$" || true
+                        fi
+                        
+                        if [ -f "$OUTPUT_FILE" ]; then
+                            SCREENSHOT_COUNT=$((SCREENSHOT_COUNT + 1))
+                            print_success "Captured shortcode: [$shortcode]"
+                        else
+                            print_warning "Failed to capture shortcode: [$shortcode]"
                         fi
                     else
                         # Fallback to direct URL construction
@@ -114,24 +211,31 @@ run_phase_07() {
     fi
     
     # Playwright E2E visual tests if available
-    if [ -d "$FRAMEWORK_PATH/tools/e2e" ] && [ -f "$FRAMEWORK_PATH/tools/e2e/playwright.config.ts" ]; then
-        print_info "Running Playwright visual tests..."
-        
-        if command_exists npx; then
-            (
-                cd "$FRAMEWORK_PATH/tools/e2e"
-                npx playwright test --project=chromium 2>/dev/null &
-                show_progress $! "Playwright Tests"
-            )
+    # Skip if SKIP_PLAYWRIGHT is set or timeout exceeded
+    if [ "${SKIP_PLAYWRIGHT:-false}" != "true" ]; then
+        if [ -d "$FRAMEWORK_PATH/tools/e2e" ] && [ -f "$FRAMEWORK_PATH/tools/e2e/playwright.config.ts" ]; then
+            print_info "Running Playwright visual tests (60s timeout)..."
             
-            # Check for test results
-            if [ -d "$FRAMEWORK_PATH/tools/e2e/playwright-report" ]; then
-                print_success "Playwright tests completed"
-                cp -r "$FRAMEWORK_PATH/tools/e2e/playwright-report" "$SCAN_DIR/"
+            if command_exists npx; then
+                (
+                    cd "$FRAMEWORK_PATH/tools/e2e"
+                    # Run with timeout to prevent hanging
+                    timeout 60 npx playwright test --project=chromium 2>/dev/null || {
+                        print_warning "Playwright tests timed out after 60 seconds"
+                    }
+                )
+                
+                # Check for test results
+                if [ -d "$FRAMEWORK_PATH/tools/e2e/playwright-report" ]; then
+                    print_success "Playwright tests completed"
+                    cp -r "$FRAMEWORK_PATH/tools/e2e/playwright-report" "$SCAN_DIR/" 2>/dev/null || true
+                fi
+            else
+                print_warning "npx not found - skipping Playwright tests"
             fi
-        else
-            print_warning "npx not found - skipping Playwright tests"
         fi
+    else
+        print_info "Skipping Playwright tests (SKIP_PLAYWRIGHT=true)"
     fi
     
     # Visual regression testing

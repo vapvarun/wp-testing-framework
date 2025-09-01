@@ -185,63 +185,40 @@ REST_JSON+="]"
 # Update the JSON file with extracted data
 print_info "Building comprehensive features JSON..."
 
-# Use jq if available, otherwise use sed
+# Create the JSON file directly
+cat > "$FEATURES_JSON" << EOF
+{
+  "plugin_name": "$plugin_name",
+  "extraction_date": "$(date -Iseconds)",
+  "statistics": {
+    "functions": $FUNC_COUNT,
+    "classes": $CLASS_COUNT,
+    "hooks": $((ACTION_COUNT)),
+    "shortcodes": $SC_COUNT,
+    "ajax_handlers": $AJAX_COUNT,
+    "custom_post_types": $CPT_COUNT,
+    "rest_routes": $REST_COUNT
+  },
+  "functions": $FUNCTIONS_JSON,
+  "classes": $CLASSES_JSON,
+  "hooks": {
+    "actions": $ACTIONS_JSON
+  },
+  "shortcodes": $SHORTCODES_JSON,
+  "ajax_handlers": $AJAX_JSON,
+  "custom_post_types": $CPT_JSON,
+  "rest_routes": $REST_JSON
+}
+EOF
+
+# Try to validate and format with jq if available
 if command -v jq &> /dev/null; then
-    # Create temp file with extracted data
-    cat > "$SCAN_DIR/temp-features.json" << EOF
-{
-  "plugin_name": "$plugin_name",
-  "extraction_date": "$(date -Iseconds)",
-  "statistics": {
-    "functions": $FUNC_COUNT,
-    "classes": $CLASS_COUNT,
-    "hooks": $((ACTION_COUNT)),
-    "shortcodes": $SC_COUNT,
-    "ajax_handlers": $AJAX_COUNT,
-    "custom_post_types": $CPT_COUNT,
-    "rest_routes": $REST_COUNT
-  },
-  "functions": $FUNCTIONS_JSON,
-  "classes": $CLASSES_JSON,
-  "hooks": {
-    "actions": $ACTIONS_JSON
-  },
-  "shortcodes": $SHORTCODES_JSON,
-  "ajax_handlers": $AJAX_JSON,
-  "custom_post_types": $CPT_JSON,
-  "rest_routes": $REST_JSON
-}
-EOF
-    
-    # Format with jq
-    jq '.' "$SCAN_DIR/temp-features.json" > "$FEATURES_JSON"
-    rm -f "$SCAN_DIR/temp-features.json"
-else
-    # Fallback without jq
-    cat > "$FEATURES_JSON" << EOF
-{
-  "plugin_name": "$plugin_name",
-  "extraction_date": "$(date -Iseconds)",
-  "statistics": {
-    "functions": $FUNC_COUNT,
-    "classes": $CLASS_COUNT,
-    "hooks": $((ACTION_COUNT)),
-    "shortcodes": $SC_COUNT,
-    "ajax_handlers": $AJAX_COUNT,
-    "custom_post_types": $CPT_COUNT,
-    "rest_routes": $REST_COUNT
-  },
-  "functions": $FUNCTIONS_JSON,
-  "classes": $CLASSES_JSON,
-  "hooks": {
-    "actions": $ACTIONS_JSON
-  },
-  "shortcodes": $SHORTCODES_JSON,
-  "ajax_handlers": $AJAX_JSON,
-  "custom_post_types": $CPT_JSON,
-  "rest_routes": $REST_JSON
-}
-EOF
+    if jq '.' "$FEATURES_JSON" > "$FEATURES_JSON.tmp" 2>/dev/null; then
+        mv "$FEATURES_JSON.tmp" "$FEATURES_JSON"
+        print_info "JSON formatted successfully"
+    else
+        print_warning "JSON validation failed, keeping unformatted version"
+    fi
 fi
 
 print_success "Feature extraction complete!"

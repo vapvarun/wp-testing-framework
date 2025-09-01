@@ -210,7 +210,7 @@ main() {
         "3:AI Analysis:phase-03-ai-analysis.sh"
         "4:Security Scan:phase-04-security.sh"
         "5:Performance Analysis:phase-05-performance-analysis.sh"
-        "6:Test Generation:phase-06-test-generation.sh"
+        "6:Test Generation & AI Data:phase-06-enhanced.sh"
         "7:Visual Testing:phase-07-visual-testing.sh"
         "8:Integration Tests:phase-08-integration.sh"
         "9:Documentation:phase-09-documentation.sh"

@@ -95,6 +95,34 @@ EOF
             fi
         fi
         
+        # Add plugin-specific shortcodes if known
+        case "$plugin_name" in
+            "bbpress")
+                # bbPress specific shortcodes
+                BBPRESS_SHORTCODES=("bbp-forum-index" "bbp-forum-form" "bbp-single-forum" 
+                                   "bbp-topic-index" "bbp-topic-form" "bbp-single-topic"
+                                   "bbp-reply-form" "bbp-single-reply" "bbp-login" "bbp-register"
+                                   "bbp-lost-pass" "bbp-stats")
+                for sc in "${BBPRESS_SHORTCODES[@]}"; do
+                    if [[ ! " ${SHORTCODES[@]} " =~ " ${sc} " ]]; then
+                        SHORTCODES+=("$sc")
+                    fi
+                done
+                ;;
+            "woocommerce")
+                # WooCommerce shortcodes
+                WOO_SHORTCODES=("products" "product" "add_to_cart" "product_page"
+                               "product_category" "sale_products" "best_selling_products"
+                               "recent_products" "featured_products" "woocommerce_cart"
+                               "woocommerce_checkout" "woocommerce_my_account")
+                for sc in "${WOO_SHORTCODES[@]}"; do
+                    if [[ ! " ${SHORTCODES[@]} " =~ " ${sc} " ]]; then
+                        SHORTCODES+=("$sc")
+                    fi
+                done
+                ;;
+        esac
+        
         # Create test pages for shortcodes
         SHORTCODE_PAGES=()
         if [ ${#SHORTCODES[@]} -gt 0 ]; then
@@ -129,6 +157,7 @@ EOF
                         print_success "Created test page for [$shortcode] - ID: $PAGE_ID"
                         
                         # Save for Phase 7 visual testing
+                        ensure_directory "$SCAN_DIR/raw-outputs"
                         echo "$PAGE_ID:$shortcode:$PAGE_URL" >> "$SCAN_DIR/raw-outputs/test-pages.txt"
                     fi
                 fi
@@ -143,7 +172,71 @@ EOF
         
         # Create test content for Custom Post Types
         CUSTOM_POSTS=()
-        if [ ${#CPTS[@]} -gt 0 ]; then
+        
+        # Special handling for bbPress to create proper relationships
+        if [ "$plugin_name" = "bbpress" ]; then
+            print_info "Creating bbPress test content with proper relationships..."
+            
+            # Create test forums first
+            FORUM_IDS=()
+            for i in 1 2 3; do
+                FORUM_ID=$(wp post create \
+                    --post_type="forum" \
+                    --post_status=publish \
+                    --post_title="Test Forum #$i" \
+                    --post_content="<p>This is test forum #$i for bbPress testing.</p><p>This forum contains various topics and discussions.</p>" \
+                    --path="$WP_PATH" \
+                    --porcelain 2>/dev/null || echo "0")
+                
+                if [ "$FORUM_ID" != "0" ]; then
+                    FORUM_IDS+=($FORUM_ID)
+                    FORUM_URL=$(wp post get "$FORUM_ID" --field=link --path="$WP_PATH" 2>/dev/null || echo "")
+                    CUSTOM_POSTS+=("{\"id\":$FORUM_ID,\"type\":\"forum\",\"url\":\"$FORUM_URL\"}")
+                    print_success "Created forum - ID: $FORUM_ID"
+                    ensure_directory "$SCAN_DIR/raw-outputs"
+                    echo "$FORUM_ID:forum:$FORUM_URL" >> "$SCAN_DIR/raw-outputs/test-content-urls.txt"
+                    
+                    # Create topics for this forum
+                    for j in 1 2; do
+                        TOPIC_ID=$(wp post create \
+                            --post_type="topic" \
+                            --post_status=publish \
+                            --post_title="Topic $j in Forum $i" \
+                            --post_content="<p>This is a test topic discussing important matters.</p><p>Please share your thoughts below.</p>" \
+                            --post_parent=$FORUM_ID \
+                            --path="$WP_PATH" \
+                            --porcelain 2>/dev/null || echo "0")
+                        
+                        if [ "$TOPIC_ID" != "0" ]; then
+                            TOPIC_URL=$(wp post get "$TOPIC_ID" --field=link --path="$WP_PATH" 2>/dev/null || echo "")
+                            CUSTOM_POSTS+=("{\"id\":$TOPIC_ID,\"type\":\"topic\",\"url\":\"$TOPIC_URL\"}")
+                            print_success "Created topic - ID: $TOPIC_ID"
+                            echo "$TOPIC_ID:topic:$TOPIC_URL" >> "$SCAN_DIR/raw-outputs/test-content-urls.txt"
+                            
+                            # Create replies for this topic
+                            for k in 1 2; do
+                                REPLY_ID=$(wp post create \
+                                    --post_type="reply" \
+                                    --post_status=publish \
+                                    --post_title="Re: Topic $j in Forum $i" \
+                                    --post_content="<p>This is reply #$k to the topic.</p><p>Great discussion!</p>" \
+                                    --post_parent=$TOPIC_ID \
+                                    --path="$WP_PATH" \
+                                    --porcelain 2>/dev/null || echo "0")
+                                
+                                if [ "$REPLY_ID" != "0" ]; then
+                                    REPLY_URL=$(wp post get "$REPLY_ID" --field=link --path="$WP_PATH" 2>/dev/null || echo "")
+                                    CUSTOM_POSTS+=("{\"id\":$REPLY_ID,\"type\":\"reply\",\"url\":\"$REPLY_URL\"}")
+                                    print_success "Created reply - ID: $REPLY_ID"
+                                    echo "$REPLY_ID:reply:$REPLY_URL" >> "$SCAN_DIR/raw-outputs/test-content-urls.txt"
+                                fi
+                            done
+                        fi
+                    done
+                fi
+            done
+        elif [ ${#CPTS[@]} -gt 0 ]; then
+            # Generic CPT handling for other plugins
             print_info "Creating test content for ${#CPTS[@]} custom post types..."
             
             for cpt in "${CPTS[@]}"; do
@@ -169,6 +262,10 @@ EOF
                             POST_URL=$(wp post get "$POST_ID" --field=link --path="$WP_PATH" 2>/dev/null || echo "")
                             CUSTOM_POSTS+=("{\"id\":$POST_ID,\"type\":\"$cpt\",\"url\":\"$POST_URL\"}")
                             print_success "Created $cpt post - ID: $POST_ID"
+                            
+                            # Save CPT URLs for Phase 7 visual testing
+                            ensure_directory "$SCAN_DIR/raw-outputs"
+                            echo "$POST_ID:$cpt:$POST_URL" >> "$SCAN_DIR/raw-outputs/test-content-urls.txt"
                         fi
                     done
                 fi

@@ -422,10 +422,15 @@ EOF
         TEMPLATES_DIR="$UPLOAD_PATH/wbcom-plan/templates/documentation"
         ensure_directory "$TEMPLATES_DIR"
         
-        # Extract key metrics for template
-        FUNC_COUNT=$(jq '.statistics.functions // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null)
-        CLASS_COUNT=$(jq '.statistics.classes // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null)
-        HOOK_COUNT=$(jq '.statistics.hooks // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null)
+        # Extract key metrics for template (with fallbacks)
+        FUNC_COUNT=$(jq '.statistics.functions // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null || echo "0")
+        CLASS_COUNT=$(jq '.statistics.classes // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null || echo "0")
+        HOOK_COUNT=$(jq '.statistics.hooks // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null || echo "0")
+        
+        # Ensure we have valid numbers
+        FUNC_COUNT=${FUNC_COUNT:-0}
+        CLASS_COUNT=${CLASS_COUNT:-0}
+        HOOK_COUNT=${HOOK_COUNT:-0}
         
         cat > "$TEMPLATES_DIR/${PLUGIN_NAME}-metrics.json" << EOF
 {

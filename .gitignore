@@ -16,3 +16,15 @@
 .DS_Store
 Thumbs.db
 /archive/
+
+# Test artifacts
+tools/e2e/playwright-report/
+tools/e2e/test-results/
+tools/e2e/.playwright-artifacts*/
+*.webm
+*.trace.zip
+
+# Temp test data
+*.tmp
+test-data/
+temp/
