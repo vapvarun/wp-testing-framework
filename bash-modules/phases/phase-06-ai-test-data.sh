@@ -513,5 +513,34 @@ EOF
     echo "5. Execute using: $TEST_EXEC_SCRIPT"
     print_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
+    # Copy to wbcom-plans for reusable patterns
+    PLAN_DIR="$UPLOAD_PATH/wbcom-plan/$PLUGIN_NAME/$DATE_MONTH"
+    ensure_directory "$PLAN_DIR/ai-prompts"
+    
+    if [ -f "$AI_TEST_DATA_PROMPT" ]; then
+        cp "$AI_TEST_DATA_PROMPT" "$PLAN_DIR/ai-prompts/test-data-generation.md"
+        print_info "Copied AI prompt to wbcom-plans for future reuse"
+    fi
+    
+    # Save plugin type pattern for future use
+    if [ -n "$PLUGIN_TYPE" ]; then
+        PATTERNS_DIR="$UPLOAD_PATH/wbcom-plan/models/plugin-patterns"
+        ensure_directory "$PATTERNS_DIR"
+        
+        cat > "$PATTERNS_DIR/${PLUGIN_NAME}-type.json" << EOF
+{
+    "plugin": "$PLUGIN_NAME",
+    "type": "$PLUGIN_TYPE",
+    "detected_patterns": {
+        "custom_tables": ${CUSTOM_TABLES_COUNT:-0},
+        "database_queries": ${QUERY_COUNT:-0},
+        "forms": ${FORM_COUNT:-0},
+        "detected_date": "$(date -Iseconds)"
+    }
+}
+EOF
+        print_info "Saved plugin type pattern to wbcom-plans"
+    fi
+    
     return 0
 }

@@ -408,6 +408,40 @@ EOF
     # Save phase results
     save_phase_results "09" "completed"
     
+    # Copy to wbcom-plans for reusable documentation templates
+    PLAN_DIR="$UPLOAD_PATH/wbcom-plan/$PLUGIN_NAME/$DATE_MONTH"
+    ensure_directory "$PLAN_DIR/ai-prompts"
+    
+    if [ -f "$AI_DOC_PROMPT" ]; then
+        cp "$AI_DOC_PROMPT" "$PLAN_DIR/ai-prompts/documentation-generation.md"
+        print_info "Copied AI documentation prompt to wbcom-plans for future reuse"
+    fi
+    
+    # Save documentation pattern for this plugin type
+    if [ -f "$SCAN_DIR/extracted-features.json" ] && command_exists jq; then
+        TEMPLATES_DIR="$UPLOAD_PATH/wbcom-plan/templates/documentation"
+        ensure_directory "$TEMPLATES_DIR"
+        
+        # Extract key metrics for template
+        FUNC_COUNT=$(jq '.statistics.functions // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null)
+        CLASS_COUNT=$(jq '.statistics.classes // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null)
+        HOOK_COUNT=$(jq '.statistics.hooks // 0' "$SCAN_DIR/extracted-features.json" 2>/dev/null)
+        
+        cat > "$TEMPLATES_DIR/${PLUGIN_NAME}-metrics.json" << EOF
+{
+    "plugin": "$PLUGIN_NAME",
+    "documentation_metrics": {
+        "functions": $FUNC_COUNT,
+        "classes": $CLASS_COUNT,
+        "hooks": $HOOK_COUNT,
+        "prompt_size": "${PROMPT_SIZE:-N/A}",
+        "generated_date": "$(date -Iseconds)"
+    }
+}
+EOF
+        print_info "Saved documentation metrics to wbcom-plans templates"
+    fi
+    
     return 0
 }
 

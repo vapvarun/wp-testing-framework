@@ -362,5 +362,42 @@ else
 fi
 
     print_success "Phase 10 completed successfully"
+    
+    # Copy aggregated analysis to wbcom-plans for learning patterns
+    PLAN_DIR="$UPLOAD_PATH/wbcom-plan/$plugin_name/$DATE_MONTH"
+    ensure_directory "$PLAN_DIR/analysis-results"
+    
+    if [ -f "$AGGREGATED_FILE" ]; then
+        cp "$AGGREGATED_FILE" "$PLAN_DIR/analysis-results/aggregated-analysis.json"
+        print_info "Copied aggregated analysis to wbcom-plans"
+    fi
+    
+    if [ -f "$MASTER_REPORT" ]; then
+        cp "$MASTER_REPORT" "$PLAN_DIR/analysis-results/master-report.md"
+        print_info "Copied master report to wbcom-plans"
+    fi
+    
+    # Save plugin score pattern
+    SCORES_DIR="$UPLOAD_PATH/wbcom-plan/models/plugin-scores"
+    ensure_directory "$SCORES_DIR"
+    
+    cat > "$SCORES_DIR/${plugin_name}-score.json" << EOF
+{
+    "plugin": "$plugin_name",
+    "overall_score": ${FINAL_SCORE:-0},
+    "critical_issues": ${CRITICAL_ISSUES:-0},
+    "high_issues": ${HIGH_ISSUES:-0},
+    "analysis_date": "$(date -Iseconds)",
+    "phase_scores": {
+        "functions": ${FUNC_COUNT:-0},
+        "classes": ${CLASS_COUNT:-0},
+        "hooks": ${HOOK_COUNT:-0},
+        "security_issues": ${SECURITY_ISSUES:-0},
+        "performance_issues": ${PERF_ISSUES:-0}
+    }
+}
+EOF
+    print_info "Saved plugin score pattern to wbcom-plans"
+    
     return 0
 }
