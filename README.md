@@ -4,28 +4,47 @@
 
 Complete plugin analysis with integrated security scanning, performance profiling, and AI-ready reports for test generation!
 
-## ✨ What's New: AI-Enhanced Testing & Complete Integration!
+## ✨ What's New: Modular Testing Framework with AI Integration!
 
-One command now runs **ALL testing tools** in 12 comprehensive phases:
-1. **Setup** - Auto-creates all directories
-2. **Detection** - Finds and activates plugins
-3. **AI Analysis** - AST parsing + dynamic test data generation
-4. **Security** - Vulnerability scanning (XSS, SQL injection, nonces)
-5. **Performance** - Memory/load profiling with metrics
-6. **Test Generation** - AI-enhanced, executable, and basic tests
-7. **Visual Testing** - Automated screenshots and UI validation
-8. **Integration Tests** - WordPress hooks, shortcodes, AJAX
-9. **Reporting** - HTML, Markdown, and AI-ready reports
-10. **Consolidation** - Organized final reports with INDEX
-11. **Live Testing** - Test data creation and execution
-12. **Safekeeping** - Framework preservation and templates
+### 📦 Modular Architecture - Run Any Phase Independently!
+
+The framework now uses a **fully modular approach** where each phase can be run independently:
+
+```bash
+# Run complete analysis (all 12 phases)
+./test-plugin.sh bbpress
+
+# Run individual phases
+./bash-modules/phases/phase-02-detection-enhanced.sh bbpress
+./bash-modules/phases/phase-03-ai-analysis.sh bbpress
+./bash-modules/phases/phase-06-ai-test-data.sh bbpress
+
+# Skip specific phases
+SKIP_PHASES="7,11" ./test-plugin.sh bbpress
+```
+
+### 🔄 Progressive Data Flow - Each Phase Builds on Previous!
+
+12 comprehensive phases with **progressive data building**:
+1. **Setup** - Directory structure + scan-info.json
+2. **Detection (Enhanced)** - Extracts 500+ functions, classes, hooks with ACTUAL data
+3. **AI Analysis (AST)** - 2MB+ rich AST data with complexity metrics
+4. **Security** - Uses AST data for vulnerability scanning
+5. **Performance** - Uses complexity metrics from AST
+6. **Test Generation + AI Data** - Creates tests AND contextual test data
+7. **Visual Testing** - Uses test data created in Phase 6
+8. **Integration Tests** - Tests with realistic data relationships
+9. **AI Documentation** - 50K+ prompt using ALL previous data
+10. **Consolidation (Enhanced)** - Aggregates everything, calculates score
+11. **Live Testing** - Uses real test data from Phase 6
+12. **Safekeeping** - Archives to wbcom-scan, not framework
 
 ### 🚀 New Features:
-- **AI-Enhanced Test Generation** - Intelligent test cases based on code analysis
-- **Three-Tier Testing** - Smart, Executable, and Basic tests
-- **Dynamic Test Data** - Pattern-based data generation
-- **Real Code Coverage** - Executable tests with assertions (not stubs)
-- **Automatic Fallbacks** - Works without AI API keys
+- **Modular Phase System** - Run any phase independently
+- **AI-Driven Test Data** - Analyzes database patterns for contextual data
+- **Progressive Enhancement** - No repeated work, each phase adds value
+- **Clean Framework** - All data in wbcom-scan, framework contains only tools
+- **Real Data Extraction** - Actual names/values, not just counts
 
 ## ✨ Quick Start (Local WP)
 
@@ -133,53 +152,73 @@ cat workspace/ai-reports/plugin-name/security-analysis.txt # Security findings
 3. Paste to Claude: "Generate comprehensive PHPUnit tests for these functions"
 4. Claude generates complete test suites based on your analysis!
 
-## 🤖 AI-Enhanced Testing (NEW!)
+## 🤖 AI-Enhanced Testing & Modular Phases
 
-### Automatic Test Generation
-The framework now generates three tiers of tests automatically:
+### Running Individual Phases
 
-#### 1. AI-Enhanced Smart Tests (Requires API Key)
+Each phase can be run independently for targeted analysis:
+
 ```bash
-# Set your Anthropic API key
-export ANTHROPIC_API_KEY="your-api-key"
+# Phase 2: Enhanced Detection (extracts actual data)
+./bash-modules/phases/phase-02-detection-enhanced.sh plugin-name
 
-# Run with AI enhancement
-./test-plugin.sh your-plugin
+# Phase 3: AI/AST Analysis (generates 2MB+ AST data)
+./bash-modules/phases/phase-03-ai-analysis.sh plugin-name
 
-# Tests generated in:
-# wp-content/uploads/wbcom-scan/your-plugin/*/generated-tests/*SmartExecutableTest.php
+# Phase 6: AI Test Data Generation (analyzes database patterns)
+./bash-modules/phases/phase-06-ai-test-data.sh plugin-name
+
+# Phase 9: AI Documentation (uses all collected data)
+./bash-modules/phases/phase-09-documentation.sh plugin-name
+
+# Phase 10: Enhanced Consolidation (aggregates everything)
+./bash-modules/phases/phase-10-consolidation-enhanced.sh plugin-name
 ```
 
-**AI generates tests for:**
-- Security vulnerabilities (XSS, SQL injection)
-- Edge cases and error handling
-- Form validation and sanitization
-- Database operations with isolation
-- User roles and capabilities
-- AJAX handlers with mock requests
+### AI-Driven Test Data Generation
 
-#### 2. Executable Tests (Always Generated)
+The framework analyzes database patterns to generate contextual test data:
+
+```bash
+# Run AI test data generation
+./bash-modules/phases/phase-06-ai-test-data.sh your-plugin
+
+# Creates comprehensive AI prompt at:
+# wbcom-scan/your-plugin/2025-09/analysis-requests/phase-6-ai-test-data.md
+
+# AI analyzes:
+# - Database queries (INSERT, UPDATE, SELECT)
+# - Custom tables and schema
+# - Meta operations and relationships
+# - Plugin type detection (ecommerce, forum, LMS, etc.)
+```
+
+**AI generates contextual test data based on plugin type:**
+- **E-commerce**: Products, orders, payment methods
+- **Forum**: Topics, replies, user discussions
+- **LMS**: Courses, lessons, enrollments
+- **Membership**: Subscription levels, access rules
+- **Forms**: Submissions with validation
+
+### Test Generation Tiers
+
+#### 1. Executable Tests (Always Generated)
 - Real assertions that execute code
 - Function existence and callability
 - Shortcode output validation
 - Hook callback verification
 - Provides actual code coverage (20-30%)
 
+#### 2. AI-Enhanced Test Data
+- Contextual data based on plugin patterns
+- SQL queries for custom tables
+- WP-CLI commands for content creation
+- Realistic relationships and foreign keys
+
 #### 3. Basic Test Structure
 - PHPUnit test class framework
 - Placeholder methods for manual development
 - Setup and teardown methods
-
-### Coverage Reporting
-```bash
-# Run tests with coverage
-XDEBUG_MODE=coverage ./test-plugin.sh your-plugin
-
-# Coverage appears in reports:
-# - Test Summary shows coverage percentage
-# - Executable tests provide real coverage (not 0%)
-# - AI tests can achieve 40-60% coverage
-```
 
 ## 🔥 Why Local WP?
 
@@ -255,30 +294,37 @@ All PHP testing tools now run automatically in sequence:
 4. **test-coverage-report.php** - Coverage metrics
 5. **component-test-dashboard.php** - Visual test status
 
-## 📁 What Gets Created Automatically
+## 📁 Output Structure - Clean Separation
 
-When you run `./test-plugin.sh plugin-name`:
+All analysis data is stored in `wbcom-scan/` keeping the framework clean:
 
 ```
-workspace/
-├── ai-reports/plugin-name/
-│   ├── ai-analysis-report.md    # Complete AI report
-│   ├── functions-list.txt       # All functions (e.g., 2,431 for bbPress)
-│   ├── classes-list.txt         # All classes (e.g., 63 for bbPress)
-│   ├── hooks-list.txt           # All hooks (e.g., 2,059 for bbPress)
-│   ├── database-operations.txt  # SQL queries
-│   ├── ajax-handlers.txt        # AJAX endpoints
-│   ├── security-analysis.txt    # Security findings
-│   └── summary.json             # Machine-readable data
-├── reports/plugin-name/
-│   ├── report-*.html            # Beautiful dashboard
-│   ├── security-*.txt           # Security scan results
-│   ├── performance-*.txt        # Performance metrics
-│   └── coverage-*.txt           # Test coverage
-└── plugins/plugin-name/
-    ├── test-config.json          # Auto-generated config
-    └── tests/                    # Generated test suites
+wp-content/uploads/wbcom-scan/plugin-name/2025-09/
+├── extracted-features.json       # 500+ functions, classes, hooks with names
+├── wordpress-ast-analysis.json   # 2MB+ AST data with complexity
+├── test-data-manifest.json      # Created test data IDs and URLs
+├── analysis-requests/
+│   ├── phase-6-ai-test-data.md  # AI prompt for test data generation
+│   └── phase-9-ai-documentation.md # 50K+ comprehensive prompt
+├── reports/
+│   ├── security-report.md       # Vulnerability analysis
+│   ├── performance-report.md    # Performance metrics
+│   ├── test-data-report.md      # Test data creation summary
+│   └── MASTER-REPORT.md         # Aggregated analysis with score
+├── generated-tests/
+│   ├── *ExecutableTest.php      # Real executable tests
+│   └── *BasicTest.php           # Test structure
+├── documentation/
+│   ├── USER-GUIDE.md            # AI-generated user guide
+│   └── ISSUES-AND-FIXES.md     # AI-generated issues report
+└── raw-outputs/
+    ├── detected-functions.txt   # Function signatures
+    ├── detected-classes.txt     # Class definitions
+    ├── detected-hooks.txt       # Hook implementations
+    └── test-pages.txt          # Created test page URLs
 ```
+
+**Framework directory stays clean - contains only tools!**
 
 ## 🛠️ Requirements
 
