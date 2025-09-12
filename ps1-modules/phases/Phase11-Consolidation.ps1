@@ -1,4 +1,4 @@
-# Phase 10: Consolidating All Reports
+# Phase 11: Consolidating All Reports
 # Combines all phase results into a comprehensive final report
 
 param(
@@ -9,10 +9,10 @@ param(
 # Import common functions
 Import-Module "$PSScriptRoot\..\shared\Common-Functions.ps1" -Force
 
-function Invoke-Phase10 {
+function Invoke-Phase11 {
     param([hashtable]$Config)
     
-    Write-Phase "PHASE 10: Consolidating All Reports"
+    Write-Phase "PHASE 11: Consolidating All Reports"
     
     Write-Info "Gathering results from all phases..."
     

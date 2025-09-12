@@ -1,4 +1,4 @@
-# Phase 8: WordPress Integration Tests
+# Phase 9: WordPress Integration Tests
 # Tests plugin integration with WordPress core functionality
 
 param(
@@ -9,10 +9,10 @@ param(
 # Import common functions
 Import-Module "$PSScriptRoot\..\shared\Common-Functions.ps1" -Force
 
-function Invoke-Phase08 {
+function Invoke-Phase09 {
     param([hashtable]$Config)
     
-    Write-Phase "PHASE 8: WordPress Integration Tests"
+    Write-Phase "PHASE 9: WordPress Integration Tests"
     
     Write-Info "Testing WordPress integration points..."
     

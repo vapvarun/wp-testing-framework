@@ -1,4 +1,4 @@
-# Phase 3: AI-Driven Code Analysis
+# Phase 4: AI-Driven Code Analysis
 # Performs AST analysis, dynamic test data generation, and code analysis
 
 param(
@@ -9,10 +9,10 @@ param(
 # Import common functions
 Import-Module "$PSScriptRoot\..\shared\Common-Functions.ps1" -Force
 
-function Invoke-Phase03 {
+function Invoke-Phase04 {
     param([hashtable]$Config)
     
-    Write-Phase "PHASE 3: AI-Driven Code Analysis"
+    Write-Phase "PHASE 4: AI-Driven Code Analysis"
     
     # Check if we should skip this phase
     if ($Config.QuickMode) {
@@ -30,10 +30,38 @@ function Invoke-Phase03 {
         DynamicData = $null
         PHPStan = $null
         FileAnalysis = @{}
+        PluginCheck = $null
         Status = "InProgress"
     }
     
-    # 1. WordPress AST Analysis
+    # 1. Load Plugin Check Results (from Phase 3)
+    Write-Info "Loading Plugin Check results..."
+    $pluginCheckDir = Join-Path $Config.ScanDir "plugin-check"
+    $pluginCheckJson = Join-Path $pluginCheckDir "plugin-check-full.json"
+    
+    if (Test-Path $pluginCheckJson) {
+        try {
+            $pluginCheckContent = Get-Content $pluginCheckJson -Raw
+            if ($pluginCheckContent.Trim()) {
+                $pluginCheckData = $pluginCheckContent | ConvertFrom-Json
+                $results.PluginCheck = @{
+                    ErrorCount = ($pluginCheckData | Where-Object { $_.type -eq "ERROR" }).Count
+                    WarningCount = ($pluginCheckData | Where-Object { $_.type -eq "WARNING" }).Count
+                    Categories = ($pluginCheckData | ForEach-Object { $_.category } | Where-Object { $_ } | Sort-Object -Unique)
+                    SecurityIssues = ($pluginCheckData | Where-Object { $_.category -like "*security*" -or $_.code -like "*escaping*" -or $_.code -like "*sql*" }).Count
+                    PerformanceIssues = ($pluginCheckData | Where-Object { $_.category -like "*performance*" -or $_.code -like "*script*" -or $_.code -like "*style*" }).Count
+                }
+                Write-Info "Plugin Check data loaded: $($results.PluginCheck.ErrorCount) errors, $($results.PluginCheck.WarningCount) warnings"
+            }
+        }
+        catch {
+            Write-Warning "Failed to parse Plugin Check results: $_"
+        }
+    } else {
+        Write-Warning "Plugin Check results not found. Run Phase 3 first."
+    }
+    
+    # 2. WordPress AST Analysis
     Write-Info "Running WordPress AST Analysis..."
     $astAnalyzer = Join-Path $Config.FrameworkPath "tools\wordpress-ast-analyzer.js"
     
@@ -65,7 +93,7 @@ function Invoke-Phase03 {
         Write-Warning "AST analyzer not found"
     }
     
-    # 2. Dynamic Test Data Generation
+    # 3. Dynamic Test Data Generation
     Write-Info "Generating dynamic test data..."
     $dataGenerator = Join-Path $Config.FrameworkPath "tools\ai\dynamic-test-data-generator.mjs"
     
@@ -77,7 +105,7 @@ function Invoke-Phase03 {
         }
     }
     
-    # 3. PHPStan Analysis (if available)
+    # 4. PHPStan Analysis (if available)
     if ($Config.UsePHPStan) {
         Write-Info "Running PHPStan analysis..."
         $phpstanConfig = Join-Path $Config.FrameworkPath "phpstan.neon"
@@ -104,7 +132,7 @@ function Invoke-Phase03 {
         }
     }
     
-    # 4. File-level analysis
+    # 5. File-level analysis
     Write-Info "Performing file-level analysis..."
     
     # Get all PHP files
@@ -123,7 +151,7 @@ function Invoke-Phase03 {
         }
     }
     
-    # 5. WordPress pattern detection
+    # 6. WordPress pattern detection
     Write-Info "Detecting WordPress patterns..."
     
     $patterns = @{
@@ -147,7 +175,7 @@ function Invoke-Phase03 {
     
     # Save results
     $results.Status = "Completed"
-    Save-PhaseResults -Phase "03" -Results $results -OutputPath $Config.ScanDir
+    Save-PhaseResults -Phase "04" -Results $results -OutputPath $Config.ScanDir
     
     Write-Success "Code analysis complete"
     
@@ -156,5 +184,5 @@ function Invoke-Phase03 {
 
 # Execute phase if running standalone
 if ($MyInvocation.InvocationName -ne '.') {
-    Invoke-Phase03 -Config $Config
+    Invoke-Phase04 -Config $Config
 }

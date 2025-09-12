@@ -1,4 +1,4 @@
-# Phase 4: Security Vulnerability Scanning
+# Phase 5: Security Vulnerability Scanning
 # Scans for common WordPress security vulnerabilities
 
 param(
@@ -9,10 +9,10 @@ param(
 # Import common functions
 Import-Module "$PSScriptRoot\..\shared\Common-Functions.ps1" -Force
 
-function Invoke-Phase04 {
+function Invoke-Phase05 {
     param([hashtable]$Config)
     
-    Write-Phase "PHASE 4: Security Vulnerability Scanning"
+    Write-Phase "PHASE 5: Security Vulnerability Scanning"
     
     $vulnerabilities = @{
         Critical = @()

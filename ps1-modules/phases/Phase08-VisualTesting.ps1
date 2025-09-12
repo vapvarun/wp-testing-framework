@@ -1,4 +1,4 @@
-# Phase 7: Visual Testing & Screenshots
+# Phase 8: Visual Testing & Screenshots
 # Captures screenshots of plugin functionality and UI elements
 
 param(
@@ -9,10 +9,10 @@ param(
 # Import common functions
 Import-Module "$PSScriptRoot\..\shared\Common-Functions.ps1" -Force
 
-function Invoke-Phase07 {
+function Invoke-Phase08 {
     param([hashtable]$Config)
     
-    Write-Phase "PHASE 7: Visual Testing & Screenshots"
+    Write-Phase "PHASE 8: Visual Testing & Screenshots"
     
     # Check if screenshot tool exists
     $screenshotTool = Join-Path $Config.FrameworkPath "tools\automated-screenshot-capture.js"

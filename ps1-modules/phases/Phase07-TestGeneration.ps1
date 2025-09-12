@@ -1,4 +1,4 @@
-# Phase 6: Test Generation, Execution & Coverage
+# Phase 7: Test Generation, Execution & Coverage
 # Generates three tiers of tests and runs them with coverage analysis
 
 param(
@@ -9,10 +9,10 @@ param(
 # Import common functions
 Import-Module "$PSScriptRoot\..\shared\Common-Functions.ps1" -Force
 
-function Invoke-Phase06 {
+function Invoke-Phase07 {
     param([hashtable]$Config)
     
-    Write-Phase "PHASE 6: Test Generation, Execution & Coverage"
+    Write-Phase "PHASE 7: Test Generation, Execution & Coverage"
     
     $results = @{
         BasicTests = $false

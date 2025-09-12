@@ -1,5 +1,5 @@
-# WordPress Plugin Testing Framework v12.0 - PowerShell Edition
-# Complete 12-phase testing with modular architecture
+# WordPress Plugin Testing Framework v13.0 - PowerShell Edition
+# Complete 13-phase testing with modular architecture
 # Usage: .\test-plugin.ps1 <plugin-name> [-Mode <full|quick|security|ai>]
 
 param(
@@ -33,7 +33,7 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 # Show help if requested
 if ($Help) {
     Write-Host @"
-WordPress Plugin Testing Framework v12.0
+WordPress Plugin Testing Framework v13.0
 =========================================
 
 USAGE:
@@ -49,7 +49,7 @@ PARAMETERS:
     -Help           : Show this help message
 
 EXAMPLES:
-    # Full analysis with all 12 phases
+    # Full analysis with all 13 phases
     .\test-plugin.ps1 woocommerce
     
     # Quick mode (skips time-consuming phases)
@@ -64,16 +64,17 @@ EXAMPLES:
 PHASES:
     1.  Setup & Directory Structure
     2.  Plugin Detection & Basic Analysis
-    3.  AI-Driven Code Analysis (AST + Dynamic)
-    4.  Security Vulnerability Scanning
-    5.  Performance Analysis
-    6.  Test Generation, Execution & Coverage
-    7.  Visual Testing & Screenshots
-    8.  WordPress Integration Tests
-    9.  Documentation Generation & Quality Validation
-    10. Consolidating All Reports
-    11. Live Testing with Test Data
-    12. Framework Safekeeping
+    3.  WordPress Plugin Check Analysis
+    4.  AI-Driven Code Analysis (AST + Dynamic)
+    5.  Security Vulnerability Scanning
+    6.  Performance Analysis
+    7.  Test Generation, Execution & Coverage
+    8.  Visual Testing & Screenshots
+    9.  WordPress Integration Tests
+    10. Documentation Generation & Quality Validation
+    11. Consolidating All Reports
+    12. Live Testing with Test Data
+    13. Framework Safekeeping
 
 "@ -ForegroundColor Cyan
     exit 0
@@ -236,7 +237,7 @@ switch ($Mode) {
 # Banner
 Write-Host ""
 Write-Host "╔════════════════════════════════════════════╗" -ForegroundColor Blue
-Write-Host "║   WP Testing Framework v12.0               ║" -ForegroundColor Blue
+Write-Host "║   WP Testing Framework v13.0               ║" -ForegroundColor Blue
 Write-Host "║   Complete Plugin Analysis & Testing       ║" -ForegroundColor Blue
 Write-Host "║   Plugin: $PluginName" -ForegroundColor Blue
 Write-Host "║   Mode: $Mode" -ForegroundColor Blue
@@ -380,10 +381,19 @@ $Global:Results["Phase2"] = Invoke-PhaseExecution -Number 2 -Name "Plugin Detect
 }
 
 # ============================================================================
-# PHASE 3: AI-Driven Code Analysis
+# PHASE 3: WordPress Plugin Check Analysis
 # ============================================================================
-$Global:Results["Phase3"] = Invoke-PhaseExecution -Number 3 -Name "AI Analysis" -ScriptFile "Phase03-AIAnalysis.ps1" -InlineFunction {
-    Write-Phase "PHASE 3: AI-Driven Code Analysis"
+$Global:Results["Phase3"] = Invoke-PhaseExecution -Number 3 -Name "Plugin Check" -ScriptFile "Phase03-PluginCheck.ps1" -InlineFunction {
+    Write-Phase "PHASE 3: WordPress Plugin Check Analysis"
+    Write-Info "Running WordPress Plugin Check analysis..."
+    @{ Status = "Completed" }
+}
+
+# ============================================================================
+# PHASE 4: AI-Driven Code Analysis
+# ============================================================================
+$Global:Results["Phase4"] = Invoke-PhaseExecution -Number 4 -Name "AI Analysis" -ScriptFile "Phase04-AIAnalysis.ps1" -InlineFunction {
+    Write-Phase "PHASE 4: AI-Driven Code Analysis"
     
     if ($Global:Config.QuickMode) {
         return @{ Status = "Skipped"; Reason = "Quick mode" }
@@ -410,10 +420,10 @@ $Global:Results["Phase3"] = Invoke-PhaseExecution -Number 3 -Name "AI Analysis" 
 }
 
 # ============================================================================
-# PHASE 4: Security Vulnerability Scanning
+# PHASE 5: Security Vulnerability Scanning
 # ============================================================================
-$Global:Results["Phase4"] = Invoke-PhaseExecution -Number 4 -Name "Security" -ScriptFile "Phase04-Security.ps1" -InlineFunction {
-    Write-Phase "PHASE 4: Security Vulnerability Scanning"
+$Global:Results["Phase5"] = Invoke-PhaseExecution -Number 5 -Name "Security" -ScriptFile "Phase05-Security.ps1" -InlineFunction {
+    Write-Phase "PHASE 5: Security Vulnerability Scanning"
     
     Write-Info "Scanning for security vulnerabilities..."
     
@@ -445,10 +455,10 @@ $Global:Results["Phase4"] = Invoke-PhaseExecution -Number 4 -Name "Security" -Sc
 }
 
 # ============================================================================
-# PHASE 5: Performance Analysis
+# PHASE 6: Performance Analysis
 # ============================================================================
-$Global:Results["Phase5"] = Invoke-PhaseExecution -Number 5 -Name "Performance" -ScriptFile "Phase05-Performance.ps1" -InlineFunction {
-    Write-Phase "PHASE 5: Performance Analysis"
+$Global:Results["Phase6"] = Invoke-PhaseExecution -Number 6 -Name "Performance" -ScriptFile "Phase06-Performance.ps1" -InlineFunction {
+    Write-Phase "PHASE 6: Performance Analysis"
     
     $phpFiles = Get-ChildItem -Path $Global:Config.PluginPath -Filter "*.php" -Recurse
     $largeFiles = $phpFiles | Where-Object { $_.Length -gt 100KB }
@@ -474,10 +484,10 @@ $Global:Results["Phase5"] = Invoke-PhaseExecution -Number 5 -Name "Performance" 
 }
 
 # ============================================================================
-# PHASE 6: Test Generation, Execution & Coverage
+# PHASE 7: Test Generation, Execution & Coverage
 # ============================================================================
-$Global:Results["Phase6"] = Invoke-PhaseExecution -Number 6 -Name "Test Generation" -ScriptFile "Phase06-TestGeneration.ps1" -InlineFunction {
-    Write-Phase "PHASE 6: Test Generation, Execution & Coverage"
+$Global:Results["Phase7"] = Invoke-PhaseExecution -Number 7 -Name "Test Generation" -ScriptFile "Phase07-TestGeneration.ps1" -InlineFunction {
+    Write-Phase "PHASE 7: Test Generation, Execution & Coverage"
     
     # Generate PHPUnit tests
     $phpunitGen = Join-Path $Global:Config.FrameworkPath "tools\generate-phpunit-tests.php"
@@ -509,28 +519,28 @@ $Global:Results["Phase6"] = Invoke-PhaseExecution -Number 6 -Name "Test Generati
 }
 
 # ============================================================================
-# PHASE 7: Visual Testing & Screenshots
+# PHASE 8: Visual Testing & Screenshots
 # ============================================================================
-$Global:Results["Phase7"] = Invoke-PhaseExecution -Number 7 -Name "Visual Testing" -ScriptFile "Phase07-VisualTesting.ps1" -InlineFunction {
-    Write-Phase "PHASE 7: Visual Testing & Screenshots"
+$Global:Results["Phase8"] = Invoke-PhaseExecution -Number 8 -Name "Visual Testing" -ScriptFile "Phase08-VisualTesting.ps1" -InlineFunction {
+    Write-Phase "PHASE 8: Visual Testing & Screenshots"
     Write-Warning "Screenshot capture requires Playwright setup"
     @{ Status = "Skipped"; Reason = "Requires Playwright" }
 }
 
 # ============================================================================
-# PHASE 8: WordPress Integration Tests
+# PHASE 9: WordPress Integration Tests
 # ============================================================================
-$Global:Results["Phase8"] = Invoke-PhaseExecution -Number 8 -Name "Integration Tests" -ScriptFile "Phase08-Integration.ps1" -InlineFunction {
-    Write-Phase "PHASE 8: WordPress Integration Tests"
+$Global:Results["Phase9"] = Invoke-PhaseExecution -Number 9 -Name "Integration Tests" -ScriptFile "Phase09-Integration.ps1" -InlineFunction {
+    Write-Phase "PHASE 9: WordPress Integration Tests"
     Write-Info "Testing WordPress integrations..."
     @{ Status = "Completed" }
 }
 
 # ============================================================================
-# PHASE 9: Documentation Generation
+# PHASE 10: Documentation Generation
 # ============================================================================
-$Global:Results["Phase9"] = Invoke-PhaseExecution -Number 9 -Name "Documentation" -ScriptFile "Phase09-Documentation.ps1" -InlineFunction {
-    Write-Phase "PHASE 9: Documentation Generation & Quality Validation"
+$Global:Results["Phase10"] = Invoke-PhaseExecution -Number 10 -Name "Documentation" -ScriptFile "Phase10-Documentation.ps1" -InlineFunction {
+    Write-Phase "PHASE 10: Documentation Generation & Quality Validation"
     Write-Info "Generating documentation..."
     
     # Generate basic documentation
@@ -553,10 +563,10 @@ Based on analysis, this plugin provides...
 }
 
 # ============================================================================
-# PHASE 10: Consolidating Reports
+# PHASE 11: Consolidating Reports
 # ============================================================================
-$Global:Results["Phase10"] = Invoke-PhaseExecution -Number 10 -Name "Consolidation" -ScriptFile "Phase10-Consolidation.ps1" -InlineFunction {
-    Write-Phase "PHASE 10: Consolidating All Reports"
+$Global:Results["Phase11"] = Invoke-PhaseExecution -Number 11 -Name "Consolidation" -ScriptFile "Phase11-Consolidation.ps1" -InlineFunction {
+    Write-Phase "PHASE 11: Consolidating All Reports"
     
     $finalDir = Join-Path $Global:Config.SafekeepDir "final-reports-$($Global:Config.Timestamp)"
     
@@ -569,10 +579,10 @@ $Global:Results["Phase10"] = Invoke-PhaseExecution -Number 10 -Name "Consolidati
 }
 
 # ============================================================================
-# PHASE 11: Live Testing with Test Data
+# PHASE 12: Live Testing with Test Data
 # ============================================================================
-$Global:Results["Phase11"] = Invoke-PhaseExecution -Number 11 -Name "Live Testing" -ScriptFile "Phase11-LiveTesting.ps1" -InlineFunction {
-    Write-Phase "PHASE 11: Live Testing with Test Data"
+$Global:Results["Phase12"] = Invoke-PhaseExecution -Number 12 -Name "Live Testing" -ScriptFile "Phase12-LiveTesting.ps1" -InlineFunction {
+    Write-Phase "PHASE 12: Live Testing with Test Data"
     
     if ($Global:Config.QuickMode) {
         return @{ Status = "Skipped"; Reason = "Quick mode" }
@@ -583,10 +593,10 @@ $Global:Results["Phase11"] = Invoke-PhaseExecution -Number 11 -Name "Live Testin
 }
 
 # ============================================================================
-# PHASE 12: Framework Safekeeping
+# PHASE 13: Framework Safekeeping
 # ============================================================================
-$Global:Results["Phase12"] = Invoke-PhaseExecution -Number 12 -Name "Safekeeping" -ScriptFile "Phase12-Safekeeping.ps1" -InlineFunction {
-    Write-Phase "PHASE 12: Framework Safekeeping"
+$Global:Results["Phase13"] = Invoke-PhaseExecution -Number 13 -Name "Safekeeping" -ScriptFile "Phase13-Safekeeping.ps1" -InlineFunction {
+    Write-Phase "PHASE 13: Framework Safekeeping"
     
     Write-Info "Saving framework configuration..."
     
@@ -621,14 +631,14 @@ Write-Host "   Duration: $($duration.ToString('mm\:ss'))"
 Write-Host ""
 
 Write-Host "📈 Phase Results:" -ForegroundColor Blue
-for ($i = 1; $i -le 12; $i++) {
+for ($i = 1; $i -le 13; $i++) {
     $result = $Global:Results["Phase$i"]
     $status = if ($result.Status -eq "Completed") { "✅" } 
               elseif ($result.Status -eq "Skipped") { "⏭️" }
               else { "❌" }
     
     $phaseName = @(
-        "Setup", "Detection", "AI Analysis", "Security", "Performance",
+        "Setup", "Detection", "Plugin Check", "AI Analysis", "Security", "Performance",
         "Test Generation", "Visual Testing", "Integration", "Documentation",
         "Consolidation", "Live Testing", "Safekeeping"
     )[$i-1]

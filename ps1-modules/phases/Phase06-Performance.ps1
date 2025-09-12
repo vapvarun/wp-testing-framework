@@ -1,4 +1,4 @@
-# Phase 5: Performance Analysis
+# Phase 6: Performance Analysis
 # Analyzes plugin performance metrics and identifies bottlenecks
 
 param(
@@ -9,10 +9,10 @@ param(
 # Import common functions
 Import-Module "$PSScriptRoot\..\shared\Common-Functions.ps1" -Force
 
-function Invoke-Phase05 {
+function Invoke-Phase06 {
     param([hashtable]$Config)
     
-    Write-Phase "PHASE 5: Performance Analysis"
+    Write-Phase "PHASE 6: Performance Analysis"
     
     Write-Info "Analyzing plugin performance metrics..."
     
