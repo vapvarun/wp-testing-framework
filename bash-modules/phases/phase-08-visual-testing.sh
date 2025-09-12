@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Phase 7: Visual Testing & Screenshots
+# Phase 8: Visual Testing & Screenshots
 # Captures screenshots of plugin functionality and UI elements
 
 # Source common functions
@@ -10,17 +10,17 @@ if [ -z "$MODULES_PATH" ]; then
 fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_07() {
+run_phase_08() {
     local plugin_name=$1
     
-    print_phase 7 "Visual Testing & Screenshots"
+    print_phase 8 "Visual Testing & Screenshots"
     
     print_info "Setting up visual testing environment..."
     
     # Check Node.js availability
     if [ "$NODE_AVAILABLE" != "true" ]; then
         print_warning "Node.js not available - skipping visual testing"
-        save_phase_results "07" "skipped"
+        save_phase_results "08" "skipped"
         return 0
     fi
     
@@ -337,10 +337,10 @@ EOF
     print_success "Visual testing complete"
     
     # Save phase results
-    save_phase_results "07" "completed"
+    save_phase_results "08" "completed"
     
     # Interactive checkpoint
-    checkpoint 7 "Visual testing complete. Ready for integration tests."
+    checkpoint 8 "Visual testing complete. Ready for integration tests."
     
     return 0
 }
@@ -364,5 +364,5 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
     # Check requirements
     check_nodejs
     
-    run_phase_07 "$PLUGIN_NAME"
+    run_phase_08 "$PLUGIN_NAME"
 fi

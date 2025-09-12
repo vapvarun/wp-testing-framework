@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# WordPress Plugin Testing Framework v12.0
+# WordPress Plugin Testing Framework v13.0
 # Main orchestrator - calls modular phase implementations
 # Usage: ./test-plugin.sh <plugin-name> [mode] [options]
 
@@ -83,16 +83,17 @@ EXAMPLES:
 PHASES:
     1.  Setup & Directory Structure
     2.  Plugin Detection & Basic Analysis
-    3.  AI-Driven Code Analysis
-    4.  Security Vulnerability Scanning
-    5.  Performance Analysis
-    6.  Test Generation & Coverage
-    7.  Visual Testing & Screenshots
-    8.  WordPress Integration Tests
-    9.  Documentation Generation
-    10. Report Consolidation
-    11. Live Testing with Test Data
-    12. Framework Safekeeping
+    3.  Plugin Check Analysis (WP Standards)
+    4.  AI-Driven Code Analysis (Uses Plugin Check Data)
+    5.  Security Vulnerability Scanning
+    6.  Performance Analysis
+    7.  Test Generation & Coverage
+    8.  Visual Testing & Screenshots
+    9.  WordPress Integration Tests
+    10. Documentation Generation
+    11. Report Consolidation
+    12. Live Testing with Test Data
+    13. Framework Safekeeping
 
 EOF
 }
@@ -187,7 +188,7 @@ main() {
     # Banner
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║   WP Testing Framework v12.0              ║${NC}"
+    echo -e "${BLUE}║   WP Testing Framework v13.0              ║${NC}"
     echo -e "${BLUE}║   Complete Plugin Analysis & Testing      ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════╝${NC}"
     echo ""
@@ -203,20 +204,21 @@ main() {
     # Start timer
     START_TIME=$(date +%s)
     
-    # Define phases
+    # Define phases (Plugin Check runs early for AI to use the data)
     declare -a PHASES=(
         "1:Setup & Directory Structure:phase-01-setup.sh"
         "2:Plugin Detection:phase-02-detection.sh"
-        "3:AI Analysis:phase-03-ai-analysis.sh"
-        "4:Security Scan:phase-04-security.sh"
-        "5:Performance Analysis:phase-05-performance-analysis.sh"
-        "6:Test Generation & AI Data:phase-06-enhanced.sh"
-        "7:Visual Testing:phase-07-visual-testing.sh"
-        "8:Integration Tests:phase-08-integration.sh"
-        "9:Documentation:phase-09-documentation.sh"
-        "10:Consolidation:phase-10-consolidation.sh"
-        "11:Live Testing:phase-11-live-testing.sh"
-        "12:Safekeeping:phase-12-safekeeping.sh"
+        "3:Plugin Check Analysis (WP Standards):phase-03-plugin-check.sh"
+        "4:AI Analysis (Uses Plugin Check Data):phase-04-ai-analysis.sh"
+        "5:Security Scan:phase-05-security.sh"
+        "6:Performance Analysis:phase-06-performance-analysis.sh"
+        "7:Test Generation & AI Data:phase-07-enhanced.sh"
+        "8:Visual Testing:phase-08-visual-testing.sh"
+        "9:Integration Tests:phase-09-integration.sh"
+        "10:Documentation:phase-10-documentation.sh"
+        "11:Consolidation:phase-11-consolidation.sh"
+        "12:Live Testing:phase-12-live-testing.sh"
+        "13:Safekeeping:phase-13-safekeeping.sh"
     )
     
     # Execute phases

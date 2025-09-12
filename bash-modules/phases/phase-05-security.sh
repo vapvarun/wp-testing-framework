@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Phase 4: Security Vulnerability Scanning
+# Phase 5: Security Vulnerability Scanning
 # Scans for common WordPress security vulnerabilities
 
 # Source common functions
@@ -10,10 +10,10 @@ if [ -z "$MODULES_PATH" ]; then
 fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_04() {
+run_phase_05() {
     local plugin_name=$1
     
-    print_phase 4 "Security Vulnerability Scanning"
+    print_phase 5 "Security Vulnerability Scanning"
     
     print_info "Scanning for security vulnerabilities..."
     
@@ -97,15 +97,15 @@ EOF
         source "$MODULES_PATH/shared/advanced-analysis.sh"
         
         # Generate comprehensive security analysis request
-        handle_deep_analysis 4 "$plugin_name" "security" "$PLUGIN_PATH" "$SCAN_DIR"
+        handle_deep_analysis 5 "$plugin_name" "security" "$PLUGIN_PATH" "$SCAN_DIR"
         
         # Process any existing security reports
-        process_existing_analysis_reports "$SCAN_DIR" 4
+        process_existing_analysis_reports "$SCAN_DIR" 5
         
         # Check if vulnerability assessment results exist
-        if [ -f "$SCAN_DIR/deep-analysis/phase-4-security-critical-findings.txt" ]; then
-            DEEP_CRITICAL=$(grep -c "CRITICAL" "$SCAN_DIR/deep-analysis/phase-4-security-critical-findings.txt" 2>/dev/null || echo 0)
-            DEEP_HIGH=$(grep -c "HIGH" "$SCAN_DIR/deep-analysis/phase-4-security-critical-findings.txt" 2>/dev/null || echo 0)
+        if [ -f "$SCAN_DIR/deep-analysis/phase-5-security-critical-findings.txt" ]; then
+            DEEP_CRITICAL=$(grep -c "CRITICAL" "$SCAN_DIR/deep-analysis/phase-5-security-critical-findings.txt" 2>/dev/null || echo 0)
+            DEEP_HIGH=$(grep -c "HIGH" "$SCAN_DIR/deep-analysis/phase-5-security-critical-findings.txt" 2>/dev/null || echo 0)
             
             if [ $DEEP_CRITICAL -gt 0 ] || [ $DEEP_HIGH -gt 0 ]; then
                 echo "" >> "$SECURITY_REPORT"
@@ -152,10 +152,10 @@ EOF
     print_success "Security scan complete - Score: $SECURITY_SCORE/100"
     
     # Save phase results
-    save_phase_results "04" "completed"
+    save_phase_results "05" "completed"
     
     # Interactive checkpoint
-    checkpoint 4 "Security scan complete. Ready for performance analysis."
+    checkpoint 5 "Security scan complete. Ready for performance analysis."
     
     return 0
 }
@@ -176,5 +176,5 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
     DATE_MONTH=$(date +"%Y-%m")
     SCAN_DIR="$UPLOAD_PATH/wbcom-scan/$PLUGIN_NAME/$DATE_MONTH"
     
-    run_phase_04 "$PLUGIN_NAME"
+    run_phase_05 "$PLUGIN_NAME"
 fi

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Phase 6: AI-Driven Intelligent Test Data Generation
+# Phase 7: AI-Driven Intelligent Test Data Generation
 # Analyzes plugin's database patterns and generates contextual test data
 
 # Set default MODULES_PATH if not already set
@@ -11,10 +11,10 @@ fi
 # Source common functions
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_06() {
+run_phase_07_ai_test_data() {
     local plugin_name=$1
     
-    print_phase 6 "AI-Driven Test Data Generation"
+    print_phase 7 "AI-Driven Test Data Generation"
     
     print_info "Analyzing plugin database patterns for intelligent test data generation..."
     
@@ -172,7 +172,7 @@ run_phase_06() {
     # 7. Generate AI Prompt for Test Data
     print_info "Creating AI prompt for intelligent test data generation..."
     
-    AI_TEST_DATA_PROMPT="$SCAN_DIR/analysis-requests/phase-6-ai-test-data.md"
+    AI_TEST_DATA_PROMPT="$SCAN_DIR/analysis-requests/phase-7-ai-test-data.md"
     ensure_directory "$(dirname "$AI_TEST_DATA_PROMPT")"
     
     cat > "$AI_TEST_DATA_PROMPT" << 'EOF'

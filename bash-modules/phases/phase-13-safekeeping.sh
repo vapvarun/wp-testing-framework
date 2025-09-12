@@ -10,10 +10,10 @@ if [ -z "$MODULES_PATH" ]; then
 fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_12() {
+run_phase_13() {
     local plugin_name=$1
     
-    print_phase 12 "Framework Safekeeping"
+    print_phase 13 "Framework Safekeeping"
     
     print_info "Archiving test results and maintaining framework..."
     
@@ -215,7 +215,7 @@ EOF
     print_info "Archives stored in: $ARCHIVE_DIR"
     
     # Save phase results
-    save_phase_results "12" "completed"
+    save_phase_results "13" "completed"
     
     # Final message
     echo ""
@@ -242,5 +242,5 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
     DATE_MONTH=$(date +"%Y-%m")
     SCAN_DIR="$UPLOAD_PATH/wbcom-scan/$PLUGIN_NAME/$DATE_MONTH"
     
-    run_phase_12 "$PLUGIN_NAME"
+    run_phase_13 "$PLUGIN_NAME"
 fi

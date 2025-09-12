@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Phase 3: AI-Driven Code Analysis
+# Phase 4: AI-Driven Code Analysis
 # Performs AST analysis and AI-driven code analysis
+# Now incorporates Plugin Check data from Phase 3
 
 # Source common functions
 # Set MODULES_PATH if not already set (for standalone execution)
@@ -10,17 +11,38 @@ if [ -z "$MODULES_PATH" ]; then
 fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_03() {
+run_phase_04() {
     local plugin_name=$1
     
-    print_phase 3 "AI-Driven Code Analysis (AST + Dynamic)"
+    print_phase 4 "AI-Driven Code Analysis (AST + Dynamic + Plugin Check)"
     
     # Check if Node.js is available
     check_nodejs
     if [ "$NODE_AVAILABLE" != "true" ]; then
         print_warning "Node.js not available - skipping AI analysis"
-        save_phase_results "03" "skipped"
+        save_phase_results "04" "skipped"
         return 0
+    fi
+    
+    # Load Plugin Check results from Phase 3
+    PLUGIN_CHECK_DIR="$SCAN_DIR/plugin-check"
+    PLUGIN_CHECK_JSON="$PLUGIN_CHECK_DIR/plugin-check-full.json"
+    PLUGIN_CHECK_INSIGHTS="$PLUGIN_CHECK_DIR/plugin-check-insights.md"
+    
+    if [ -f "$PLUGIN_CHECK_JSON" ]; then
+        print_info "Loading Plugin Check results for AI analysis..."
+        
+        # Extract key metrics from Plugin Check
+        if command_exists jq; then
+            PC_ERRORS=$(grep -o '"type":"ERROR"' "$PLUGIN_CHECK_JSON" 2>/dev/null | wc -l || echo "0")
+            PC_WARNINGS=$(grep -o '"type":"WARNING"' "$PLUGIN_CHECK_JSON" 2>/dev/null | wc -l || echo "0")
+            
+            print_info "Plugin Check Summary:"
+            echo "  - Errors: $PC_ERRORS"
+            echo "  - Warnings: $PC_WARNINGS"
+        fi
+    else
+        print_warning "Plugin Check results not found - AI analysis will proceed without them"
     fi
     
     # AST Analysis
@@ -351,6 +373,23 @@ EOF
 **Plugin**: $plugin_name  
 **Date**: $(date)
 
+## Plugin Check Integration
+$(if [ -f "$PLUGIN_CHECK_JSON" ]; then
+    echo "### WordPress Standards Compliance"
+    echo "- **Errors Found**: ${PC_ERRORS:-0}"
+    echo "- **Warnings Found**: ${PC_WARNINGS:-0}"
+    echo ""
+    if [ ${PC_ERRORS:-0} -gt 0 ]; then
+        echo "⚠️ **Critical**: Plugin has WordPress standards violations that need fixing."
+    fi
+    if [ -f "$PLUGIN_CHECK_INSIGHTS" ]; then
+        echo ""
+        echo "[Detailed Plugin Check Report](../plugin-check/plugin-check-insights.md)"
+    fi
+else
+    echo "*Plugin Check data not available*"
+fi)
+
 ## AST Analysis Results
 - Functions: ${TOTAL_FUNCTIONS:-N/A}
 - Classes: ${TOTAL_CLASSES:-N/A}
@@ -370,15 +409,32 @@ EOF
 ## Design Patterns Detected
 $(for pattern in "${PATTERNS_DETECTED[@]}"; do echo "- $pattern"; done)
 
-## Recommendations
+## Combined Analysis Recommendations
+$(if [ ${PC_ERRORS:-0} -gt 0 ]; then
+    echo "### Priority 1: WordPress Standards"
+    echo "- Fix all Plugin Check errors before proceeding"
+    echo "- Review escaping and sanitization practices"
+    echo ""
+fi)
 $(if [ $TOTAL_COMPLEXITY -gt 1000 ]; then
+    echo "### Code Complexity"
     echo "- ⚠️ High complexity detected. Consider refactoring complex functions."
+    echo ""
 fi)
 $(if [ ${TOTAL_FUNCTIONS:-0} -gt 500 ]; then
+    echo "### Code Organization"
     echo "- Consider organizing functions into classes for better structure."
+    echo ""
 fi)
 $(if [ ${#PATTERNS_DETECTED[@]} -eq 0 ]; then
+    echo "### Architecture"
     echo "- Consider implementing design patterns for better code organization."
+    echo ""
+fi)
+$(if [ ${PC_WARNINGS:-0} -gt 20 ]; then
+    echo "### Code Quality"
+    echo "- Address Plugin Check warnings to improve code quality"
+    echo "- Focus on performance and security warnings first"
 fi)
 EOF
     
@@ -424,5 +480,5 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
     PHP_COUNT=${PHP_COUNT:-0}
     
     # Run the phase
-    run_phase_03 "$PLUGIN_NAME"
+    run_phase_04 "$PLUGIN_NAME"
 fi

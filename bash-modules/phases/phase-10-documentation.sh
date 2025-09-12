@@ -9,10 +9,10 @@ if [ -z "$MODULES_PATH" ]; then
 fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_09() {
+run_phase_10() {
     local plugin_name=$1
     
-    print_phase 9 "AI-Driven Documentation Generation"
+    print_phase 10 "AI-Driven Documentation Generation"
     
     # Create documentation directory
     DOC_DIR="$SCAN_DIR/documentation"
@@ -406,7 +406,7 @@ EOF
     print_success "Documentation generation complete - Score: $DOC_SCORE/100"
     
     # Save phase results
-    save_phase_results "09" "completed"
+    save_phase_results "10" "completed"
     
     # Copy to wbcom-plans for reusable documentation templates
     PLAN_DIR="$UPLOAD_PATH/wbcom-plan/$PLUGIN_NAME/$DATE_MONTH"
@@ -470,5 +470,5 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
     SCAN_DIR="$UPLOAD_PATH/wbcom-scan/$PLUGIN_NAME/$DATE_MONTH"
     
     # Run the phase
-    run_phase_09 "$PLUGIN_NAME"
+    run_phase_10 "$PLUGIN_NAME"
 fi

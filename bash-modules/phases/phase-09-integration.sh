@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Phase 8: WordPress Integration Tests
+# Phase 9: WordPress Integration Tests
 # Tests plugin integration with WordPress core functionality
 
 # Source common functions
@@ -10,10 +10,10 @@ if [ -z "$MODULES_PATH" ]; then
 fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_08() {
+run_phase_09() {
     local plugin_name=$1
     
-    print_phase 8 "WordPress Integration Tests"
+    print_phase 9 "WordPress Integration Tests"
     
     print_info "Testing WordPress integration points..."
     
@@ -249,10 +249,10 @@ EOF
     print_success "Integration tests complete - Score: $INTEGRATION_SCORE/100"
     
     # Save phase results
-    save_phase_results "08" "completed"
+    save_phase_results "09" "completed"
     
     # Interactive checkpoint
-    checkpoint 8 "Integration tests complete. Ready for documentation generation."
+    checkpoint 9 "Integration tests complete. Ready for documentation generation."
     
     return 0
 }
@@ -273,5 +273,5 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
     DATE_MONTH=$(date +"%Y-%m")
     SCAN_DIR="$UPLOAD_PATH/wbcom-scan/$PLUGIN_NAME/$DATE_MONTH"
     
-    run_phase_08 "$PLUGIN_NAME"
+    run_phase_09 "$PLUGIN_NAME"
 fi

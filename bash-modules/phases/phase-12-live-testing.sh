@@ -10,10 +10,10 @@ if [ -z "$MODULES_PATH" ]; then
 fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_11() {
+run_phase_12() {
     local plugin_name=$1
     
-    print_phase 11 "Live Testing with Test Data"
+    print_phase 12 "Live Testing with Test Data"
     
     print_info "Preparing live testing environment..."
     
@@ -168,17 +168,17 @@ fi)
 
 ## Performance Analysis
 $(if [ $AVG_RESPONSE_TIME -gt 300 ]; then
-    echo "-   Response times are high - optimization needed"
+    echo "- ï¿½ Response times are high - optimization needed"
 else
     echo "-  Response times are acceptable"
 fi)
 $(if [ $DB_QUERIES -gt 50 ]; then
-    echo "-   High number of database queries detected"
+    echo "- ï¿½ High number of database queries detected"
 else
     echo "-  Database queries within acceptable range"
 fi)
 $(if [ $CACHE_HIT_RATE -lt 70 ]; then
-    echo "-   Cache hit rate is low - consider improving caching"
+    echo "- ï¿½ Cache hit rate is low - consider improving caching"
 else
     echo "-  Good cache hit rate"
 fi)
@@ -201,10 +201,10 @@ EOF
     print_success "Live testing complete - Success rate: ${SUCCESS_RATE}%"
     
     # Save phase results
-    save_phase_results "11" "completed"
+    save_phase_results "12" "completed"
     
     # Interactive checkpoint
-    checkpoint 11 "Live testing complete. Ready for framework safekeeping."
+    checkpoint 12 "Live testing complete. Ready for framework safekeeping."
     
     return 0
 }
@@ -229,5 +229,5 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
     check_nodejs
     check_wp_cli
     
-    run_phase_11 "$PLUGIN_NAME"
+    run_phase_12 "$PLUGIN_NAME"
 fi

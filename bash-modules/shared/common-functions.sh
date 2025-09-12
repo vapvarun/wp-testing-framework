@@ -48,6 +48,13 @@ print_error() {
     echo -e "${RED}❌ $1${NC}"
 }
 
+# Print subsection header
+print_subsection() {
+    echo ""
+    echo -e "${CYAN}▶ $1${NC}"
+    echo -e "${CYAN}─────────────────────────────────────────${NC}"
+}
+
 # Function for interactive checkpoint
 checkpoint() {
     local phase=$1

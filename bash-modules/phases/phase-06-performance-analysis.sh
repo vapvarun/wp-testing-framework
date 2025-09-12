@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Phase 5: Performance Analysis
+# Phase 6: Performance Analysis
 # Analyzes plugin performance metrics and identifies bottlenecks
 
 # Source common functions
@@ -10,10 +10,10 @@ if [ -z "$MODULES_PATH" ]; then
 fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_05() {
+run_phase_06() {
     local plugin_name=$1
     
-    print_phase 5 "Performance Analysis"
+    print_phase 6 "Performance Analysis"
     
     print_info "Analyzing plugin performance metrics..."
     
@@ -105,15 +105,15 @@ Performance Score: $SCORE/100
 METRICS
         
         # Generate AI performance analysis prompt for Claude
-        handle_deep_analysis 5 "$plugin_name" "performance" "$PLUGIN_PATH" "$SCAN_DIR"
+        handle_deep_analysis 6 "$plugin_name" "performance" "$PLUGIN_PATH" "$SCAN_DIR"
         
         # Process any existing AI responses
-        process_existing_analysis_reports "$SCAN_DIR" 5
+        process_existing_analysis_reports "$SCAN_DIR" 6
         
         # Add note about optimization analysis to report
         echo "" >> "$PERFORMANCE_REPORT"
         echo "## Optimization Analysis" >> "$PERFORMANCE_REPORT"
-        echo "- Detailed analysis request available in: analysis-requests/phase-5-performance.md" >> "$PERFORMANCE_REPORT"
+        echo "- Detailed analysis request available in: analysis-requests/phase-6-performance.md" >> "$PERFORMANCE_REPORT"
         echo "- Review for comprehensive optimization strategies" >> "$PERFORMANCE_REPORT"
         echo "- Process results for implementation guidance" >> "$PERFORMANCE_REPORT"
     fi
@@ -121,10 +121,10 @@ METRICS
     print_success "Performance analysis complete - Score: $SCORE/100"
     
     # Save phase results
-    save_phase_results "05" "completed"
+    save_phase_results "06" "completed"
     
     # Interactive checkpoint
-    checkpoint 5 "Performance analysis complete. Ready for test generation."
+    checkpoint 6 "Performance analysis complete. Ready for test generation."
     
     return 0
 }
@@ -145,5 +145,5 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
     DATE_MONTH=$(date +"%Y-%m")
     SCAN_DIR="$UPLOAD_PATH/wbcom-scan/$PLUGIN_NAME/$DATE_MONTH"
     
-    run_phase_05 "$PLUGIN_NAME"
+    run_phase_06 "$PLUGIN_NAME"
 fi

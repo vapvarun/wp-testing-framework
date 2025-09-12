@@ -12,14 +12,14 @@ fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
 # Main phase function
-run_phase_10() {
+run_phase_11() {
     local plugin_name="${1:-}"
     if [ -z "$plugin_name" ]; then
         print_error "Plugin name required"
         return 1
     fi
 
-    print_phase 10 "Master Data Consolidation & Aggregation"
+    print_phase 11 "Master Data Consolidation & Aggregation"
 
 # Initialize paths
 WP_CONTENT_PATH="${WP_CONTENT_PATH:-/Users/varundubey/Local Sites/wptesting/app/public/wp-content}"
@@ -370,7 +370,7 @@ else
     print_error "❌ Plugin requires major work"
 fi
 
-    print_success "Phase 10 completed successfully"
+    print_success "Phase 11 completed successfully"
     
     # Copy aggregated analysis to wbcom-plans for learning patterns
     PLAN_DIR="$UPLOAD_PATH/wbcom-plan/$plugin_name/$DATE_MONTH"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Phase 6.5: Test Data Creation
+# Phase 7b: Test Data Creation
 # Creates test content that will be used by visual testing and live testing phases
 
 # Set default MODULES_PATH if not already set
@@ -11,10 +11,10 @@ fi
 # Source common functions
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_06b() {
+run_phase_07b() {
     local plugin_name=$1
     
-    print_phase "6.5" "Test Data Creation"
+    print_phase "7b" "Test Data Creation"
     
     print_info "Creating test data for comprehensive testing..."
     

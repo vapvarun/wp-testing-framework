@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Phase 6: Test Generation & Coverage
+# Phase 7: Test Generation & Coverage
 # Generates PHPUnit tests and measures code coverage
 
 # Source common functions
@@ -10,10 +10,10 @@ if [ -z "$MODULES_PATH" ]; then
 fi
 source "$MODULES_PATH/shared/common-functions.sh"
 
-run_phase_06() {
+run_phase_07_test_generation() {
     local plugin_name=$1
     
-    print_phase 6 "Test Generation & Coverage"
+    print_phase 7 "Test Generation & Coverage"
     
     print_info "Generating PHPUnit tests..."
     
@@ -28,7 +28,7 @@ run_phase_06() {
     
     if [ "$PHP_AVAILABLE" != "true" ]; then
         print_error "PHP not available - cannot generate tests"
-        save_phase_results "06" "failed"
+        save_phase_results "07" "failed"
         return 1
     fi
     
@@ -277,10 +277,10 @@ EOF
     print_success "Test generation complete"
     
     # Save phase results
-    save_phase_results "06" "completed"
+    save_phase_results "07" "completed"
     
     # Interactive checkpoint
-    checkpoint 6 "Test generation complete. Ready for visual testing."
+    checkpoint 7 "Test generation complete. Ready for visual testing."
     
     return 0
 }
@@ -309,5 +309,5 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
     check_php
     check_nodejs
     
-    run_phase_06 "$PLUGIN_NAME"
+    run_phase_07_test_generation "$PLUGIN_NAME"
 fi
